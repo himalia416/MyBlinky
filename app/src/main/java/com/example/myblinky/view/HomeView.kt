@@ -1,6 +1,5 @@
 package com.example.myblinky.view
 
-import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myblinky.R
 
-@SuppressLint("MissingPermission", "UnrememberedMutableState")
 @Composable
 fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Boolean>) {
 
@@ -29,16 +27,13 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
             title = { Text(stringResource(id = R.string.app_name)) }
 
         )
-
         Column {
             Surface(color = MaterialTheme.colors.background) {
                 if (isBluetoothEnabled.value) {
-                    Log.i("Bluetooth state is ON", "$isBluetoothEnabled")
+                    Log.i("Bluetooth state is: ", "$isBluetoothEnabled")
                     ScannedDevices()
                 } else {
-
-
-                    Log.i("Bluetooth state is OFF", "$isBluetoothEnabled")
+                    Log.i("Bluetooth state is: ", "$isBluetoothEnabled")
                     ConnectBluetoothView()
                 }
             }
@@ -51,11 +46,10 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
 fun ScannedDevices(names: List<String> = List(10) { "Device $it" }) {
     LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
         items(items = names) { name ->
-            Scanning(name = name)
+            Scanning(name)
         }
     }
 }
-
 
 @Composable
 fun Scanning(name: String) {
