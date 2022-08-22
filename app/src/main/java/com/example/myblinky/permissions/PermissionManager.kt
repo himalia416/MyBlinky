@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+//@SingletonComponent
 object PermissionManager {
     // Request Code to be used with permissions request
     val requestCode = 1
