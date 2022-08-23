@@ -8,18 +8,20 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-//@SingletonComponent
-object PermissionManager {
+@Singleton
+open class PermissionManager @Inject constructor() {
     // Request Code to be used with permissions request
     val requestCode = 1
 
     // Tag used in our console logs
-    private const val TAG = "PermissionManager"
+    private val TAG = "PermissionManager"
     // Indicate whether all permissions have been granted
-    private var _permissionsGranted = MutableStateFlow<Boolean>(false)
+    private val _permissionsGranted = MutableStateFlow<Boolean>(false)
     // Public access to permissions
-    var permissionsGranted: StateFlow<Boolean> = _permissionsGranted
+    val permissionsGranted: StateFlow<Boolean> = _permissionsGranted
 
     // Permissions required & Permissions we will prompt the user for this lifecycle
     private val permissionsRequired: MutableList<String> = buildPermissionsList()
