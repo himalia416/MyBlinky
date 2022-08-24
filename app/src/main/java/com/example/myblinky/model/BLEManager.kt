@@ -2,9 +2,11 @@ package com.example.myblinky.model
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.le.*
+import android.bluetooth.le.BluetoothLeScanner
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanSettings
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.myblinky.permissions.PermissionManager
 import javax.inject.Inject
@@ -31,21 +33,6 @@ class BLEManager @Inject constructor(
             .build()
     }
 
-    private val leScanCallback: ScanCallback by lazy {
-        object : ScanCallback() {
-            @SuppressLint("MissingPermission")
-            override fun onScanResult(callbackType: Int, result: ScanResult?) {
-                super.onScanResult(callbackType, result)
-                Log.d("BLE Manager", "Device: ${result?.device?.address} - ${result?.device?.name}")
-            }
-
-            override fun onScanFailed(errorCode: Int) {
-                super.onScanFailed(errorCode)
-                Log.d("BLE Manager", "BLE Scan Failed with ErrorCode: $errorCode")
-            }
-        }
-    }
-
     private fun scanFilters(): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
         val scanFilterName = ScanFilter.Builder().setDeviceName(null).build()
@@ -54,13 +41,14 @@ class BLEManager @Inject constructor(
     }
 
     @SuppressLint("MissingPermission")
-    fun startScanning() {
+    fun startScanning(scanCallback: ScanCallback) {
         if (permissionManager.permissionsGranted.value) {
             bluetoothLeScanner
                 .startScan(
                     scanFilters(),
                     scanSettings,
-                    this.leScanCallback
+                    scanCallback
+
                 )
         }
     }
