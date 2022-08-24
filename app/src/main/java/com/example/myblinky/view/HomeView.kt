@@ -1,27 +1,29 @@
 package com.example.myblinky.view
 
 import android.annotation.SuppressLint
+import android.bluetooth.le.ScanResult
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.myblinky.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
@@ -64,22 +66,51 @@ fun Scanning() {
                 .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val context = LocalContext.current
-            val scope = CoroutineScope(Dispatchers.IO)
-            Button(
-
-                onClick = {
+            if (permissionGranted) {
+                ScannedDevices()
+                LaunchedEffect(permissionGranted) {
                     if (permissionGranted) {
                         viewModel.startScanning()
                     }
                 }
-            ) {
-                Text(
-                    text = "Scan",
-                    style = MaterialTheme.typography.subtitle1
-                )
+            } else {
+                //TODO show message
             }
+
+        }
+    }
+
+}
+
+
+@Composable
+fun ScannedDevices() {
+    val viewModel = hiltViewModel<HomeViewModel>()
+    val devices: State<List<ScanResult>> = viewModel.mLeDevices.collectAsState()
+    LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+        items(items = devices.value) { devices ->
+            ShowScannedDevices(devices = devices)
         }
     }
 }
 
+@Composable
+fun ShowScannedDevices(devices: ScanResult) {
+    val expanded = remember { mutableStateOf(false) }
+    val extraPadding = if (expanded.value) 48.dp else 0.dp
+    Surface(
+        color = Color.Gray,
+        modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+    ) {
+        Row(modifier = Modifier.padding(24.dp)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(bottom = extraPadding)
+            ) {
+                Text(text = devices.toString())
+
+            }
+        }
+    }
+}
