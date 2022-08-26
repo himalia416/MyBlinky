@@ -8,14 +8,14 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanSettings
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.example.myblinky.permissions.PermissionManager
+//import com.example.myblinky.permissions.PermissionManager2
 import javax.inject.Inject
 
 
 @SuppressLint("NewApi")
 @RequiresApi(Build.VERSION_CODES.M)
 class BLEManager @Inject constructor(
-    private val permissionManager: PermissionManager
+//    private val permissionManager: PermissionManager2
 ) {
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val bluetoothLeScanner: BluetoothLeScanner by lazy {
@@ -39,10 +39,10 @@ class BLEManager @Inject constructor(
         list.add(scanFilterName)
         return list
     }
-
+//    val permissionGranted = permissionManager.requireScanPermission()
     @SuppressLint("MissingPermission")
     fun startScanning(scanCallback: ScanCallback) {
-        if (permissionManager.permissionsGranted.value) {
+//        if (permissionGranted) {
             bluetoothLeScanner
                 .startScan(
                     scanFilters(),
@@ -50,6 +50,6 @@ class BLEManager @Inject constructor(
                     scanCallback
 
                 )
-        }
+//        }
     }
 }

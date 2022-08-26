@@ -3,26 +3,28 @@ package com.example.myblinky
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.myblinky.model.checkBluetoothStatus
-import com.example.myblinky.permissions.PermissionManager
+import com.example.myblinky.view.ConnectDeviceView
 import com.example.myblinky.view.HomeView
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject lateinit var permissionManager: PermissionManager
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        permissionManager.askPermissions(this)
         val isBluetoothEnabled = checkInitialBluetoothStatus()
         checkBluetoothStatus(isBluetoothEnabled).apply {
             registerReceiver(this, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
@@ -35,6 +37,16 @@ class MainActivity : ComponentActivity() {
             )
             {
                 composable(NavigationConst.HOME) { HomeView(navController, isBluetoothEnabled) }
+                composable("${NavigationConst.CONNECT_DEVICE}/{devices}",
+                    arguments = listOf(navArgument("devices") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    backStackEntry.arguments?.getString("devices")?.let {
+                        ConnectDeviceView(
+                            navController = navController,
+                            it
+                        )
+                    }
+                }
             }
         }
     }
@@ -49,22 +61,5 @@ class MainActivity : ComponentActivity() {
         }
         isBluetoothEnabled.value = bluetoothAdapter.isEnabled
         return isBluetoothEnabled
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(
-            requestCode,
-            permissions,
-            grantResults
-        )
-        permissionManager.onRequestPermissionsResult(
-            requestCode,
-            permissions,
-            grantResults
-        )
     }
 }

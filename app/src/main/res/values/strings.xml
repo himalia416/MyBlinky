@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MyBlinky</string>
+    <string name="expand">Button for expanding item to view device description</string>
 </resources>

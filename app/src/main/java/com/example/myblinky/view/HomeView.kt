@@ -1,20 +1,13 @@
 package com.example.myblinky.view
 
-import android.annotation.SuppressLint
-import android.bluetooth.le.ScanResult
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,23 +16,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.myblinky.NavigationConst
 import com.example.myblinky.R
+import com.example.myblinky.permissions.requireScanPermission
+import com.example.myblinky.viewmodel.HomeViewModel
 
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Boolean>) {
-
     Column {
         TopAppBar(
 
             title = { Text(stringResource(id = R.string.app_name)) }
 
         )
-        Column {
+        Column(modifier = Modifier.padding(1.dp)) {
             Surface(color = MaterialTheme.colors.background) {
                 if (isBluetoothEnabled.value) {
                     Log.i("Bluetooth state is: ", "$isBluetoothEnabled")
-                    Scanning()
+                    Scanning(navController)
                 } else {
                     Log.i("Bluetooth state is: ", "$isBluetoothEnabled")
                     ConnectBluetoothView()
@@ -50,33 +45,30 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
 }
 
 @RequiresApi(Build.VERSION_CODES.M)
-@SuppressLint("MissingPermission")
 @Composable
-fun Scanning() {
+fun Scanning(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val permissionGranted = viewModel.permissionGranted.collectAsState().value
-
+    val permissionGranted =   requireScanPermission()
     Surface(
-        color = Color.Gray,
-        modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+        color = Color.White,
+        modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (permissionGranted) {
-                ScannedDevices()
+            if (requireScanPermission()) {
+                ScannedDevices(navController)
                 LaunchedEffect(permissionGranted) {
+                    viewModel.startScanning()
                     if (permissionGranted) {
                         viewModel.startScanning()
                     }
                 }
-            } else {
-                //TODO show message
             }
-
         }
     }
 
@@ -84,31 +76,42 @@ fun Scanning() {
 
 
 @Composable
-fun ScannedDevices() {
+fun ScannedDevices(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val devices: State<List<ScanResult>> = viewModel.mLeDevices.collectAsState()
-    LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+    val devices: State<List<String>> = viewModel.mLeDevices.collectAsState()
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(items = devices.value) { devices ->
-            ShowScannedDevices(devices = devices)
+            ShowScannedDevices(navController, devices = devices)
         }
     }
 }
 
 @Composable
-fun ShowScannedDevices(devices: ScanResult) {
-    val expanded = remember { mutableStateOf(false) }
-    val extraPadding = if (expanded.value) 48.dp else 0.dp
+fun ShowScannedDevices(navController: NavController, devices: String) {
     Surface(
-        color = Color.Gray,
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        Row(modifier = Modifier.padding(24.dp)) {
-            Column(
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        )
+        {
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(bottom = extraPadding)
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.navigate(
+                            "${NavigationConst.CONNECT_DEVICE}/${devices}"
+                        )
+                    }
             ) {
-                Text(text = devices.toString())
+                Text(
+                    text = devices,
+                    modifier = Modifier
+                        .padding(vertical = 15.dp, horizontal = 10.dp)
+                )
+                Divider()
 
             }
         }
