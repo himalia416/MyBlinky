@@ -23,17 +23,16 @@ class HomeViewModel @Inject constructor(
     }
 
     val mLeDevices: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
-
     private val leScanCallback: ScanCallback by lazy {
         object : ScanCallback() {
             @SuppressLint("MissingPermission")
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 super.onScanResult(callbackType, result)
                 if (!mLeDevices.value.contains(result?.device?.name))
-                    if (result?.device?.name !=null) {
-                        mLeDevices.value += result.device?.name?:""
+                    if (result?.device?.name != null) {
+                        mLeDevices.value += result.device?.name ?: ""
                     }
-                Log.d("BLE Manager", "Device: ${result?.device?.address}-${result?.device?.name}")
+                Log.d("BLE Manager", "Device: $result")
             }
 
             override fun onScanFailed(errorCode: Int) {

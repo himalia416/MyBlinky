@@ -26,9 +26,7 @@ import com.example.myblinky.viewmodel.HomeViewModel
 fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Boolean>) {
     Column {
         TopAppBar(
-
             title = { Text(stringResource(id = R.string.app_name)) }
-
         )
         Column(modifier = Modifier.padding(1.dp)) {
             Surface(color = MaterialTheme.colors.background) {
@@ -48,7 +46,7 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
 @Composable
 fun Scanning(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val permissionGranted =   requireScanPermission()
+    val permissionGranted = requireScanPermission()
     Surface(
         color = Color.White,
         modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
@@ -112,7 +110,6 @@ fun ShowScannedDevices(navController: NavController, devices: String) {
                         .padding(vertical = 15.dp, horizontal = 10.dp)
                 )
                 Divider()
-
             }
         }
     }
