@@ -37,7 +37,8 @@ class MainActivity : ComponentActivity() {
             )
             {
                 composable(NavigationConst.HOME) { HomeView(navController, isBluetoothEnabled) }
-                composable("${NavigationConst.CONNECT_DEVICE}/{devices}",
+                composable(
+                    "${NavigationConst.CONNECT_DEVICE}/{devices}",
                     arguments = listOf(navArgument("devices") { type = NavType.StringType })
                 ) { backStackEntry ->
                     backStackEntry.arguments?.getString("devices")?.let {
