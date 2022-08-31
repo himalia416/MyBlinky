@@ -2,13 +2,18 @@ package com.example.myblinky.model
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.le.BluetoothLeScanner
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
-import android.bluetooth.le.ScanSettings
+import android.bluetooth.BluetoothManager
+import android.bluetooth.le.*
+import android.content.Context
 import android.os.Build
+import android.os.ParcelUuid
 import androidx.annotation.RequiresApi
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat.getSystemService
+import dagger.Binds
+import dagger.Provides
 import javax.inject.Inject
+import javax.inject.Singleton
 
 
 @SuppressLint("NewApi")
@@ -16,7 +21,7 @@ import javax.inject.Inject
 class BLEManager @Inject constructor(
 ) {
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-    private val bluetoothLeScanner: BluetoothLeScanner by lazy {
+    val bluetoothLeScanner: BluetoothLeScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
     }
     private val scanSettings: ScanSettings by lazy {
@@ -48,4 +53,9 @@ class BLEManager @Inject constructor(
 
             )
     }
+
 }
+
+
+
+

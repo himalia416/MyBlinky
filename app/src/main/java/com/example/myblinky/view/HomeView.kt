@@ -1,5 +1,6 @@
 package com.example.myblinky.view
 
+import android.bluetooth.le.ScanResult
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -46,7 +48,7 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
 @Composable
 fun Scanning(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val permissionGranted = requireScanPermission()
+    val isLocationPermissionGranted = requireScanPermission()
     Surface(
         color = Color.White,
         modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
@@ -58,11 +60,11 @@ fun Scanning(navController: NavController) {
                 .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (requireScanPermission()) {
+            if (isLocationPermissionGranted) {
                 ScannedDevices(navController)
-                LaunchedEffect(permissionGranted) {
+                LaunchedEffect(isLocationPermissionGranted) {
                     viewModel.startScanning()
-                    if (permissionGranted) {
+                    if (isLocationPermissionGranted) {
                         viewModel.startScanning()
                     }
                 }
@@ -76,7 +78,7 @@ fun Scanning(navController: NavController) {
 @Composable
 fun ScannedDevices(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val devices: State<List<String>> = viewModel.mLeDevices.collectAsState()
+    val devices: State<List<ScanResult>> = viewModel.mLeDevices.collectAsState()
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(items = devices.value) { devices ->
             ShowScannedDevices(navController, devices = devices)
@@ -85,7 +87,8 @@ fun ScannedDevices(navController: NavController) {
 }
 
 @Composable
-fun ShowScannedDevices(navController: NavController, devices: String) {
+fun ShowScannedDevices(navController: NavController, devices: ScanResult) {
+    val viewModel = hiltViewModel<HomeViewModel>()
     Surface(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
@@ -100,16 +103,25 @@ fun ShowScannedDevices(navController: NavController, devices: String) {
                     .fillMaxWidth()
                     .clickable {
                         navController.navigate(
-                            "${NavigationConst.CONNECT_DEVICE}/${devices}"
+                            "${NavigationConst.CONNECT_DEVICE}/${devices.device?.name}"
                         )
+                        viewModel.stopBleScan()
                     }
             ) {
-                Text(
-                    text = devices,
-                    modifier = Modifier
-                        .padding(vertical = 15.dp, horizontal = 10.dp)
-                )
-                Divider()
+                Column() {
+                    Text(
+                        text = devices.device?.name.toString(),
+                        modifier = Modifier
+                            .padding(vertical = 15.dp, horizontal = 10.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = devices.device?.address.toString(),
+                        modifier = Modifier
+                            .padding(vertical = 15.dp, horizontal = 10.dp)
+                    )
+                    Divider()
+                }
             }
         }
     }
