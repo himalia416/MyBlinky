@@ -18,7 +18,6 @@ import androidx.navigation.NavController
 
 @Composable
 fun ConnectDeviceView(navController: NavController, deviceName: String) {
-    val isPressed = mutableStateOf(false)
     val ledStateOn = "ON"
     val ledStateOff = "OFF"
     val buttonName = "BUTTON"
@@ -27,7 +26,6 @@ fun ConnectDeviceView(navController: NavController, deviceName: String) {
     val buttonPressed = "PRESSED"
     val buttonReleased = "RELEASED"
     val buttonDescription = "Press Button #xx on the dev kit"
-
     Column {
         TopAppBar(
             title = { Text(text = deviceName) },
@@ -97,7 +95,6 @@ fun ConnectDeviceView(navController: NavController, deviceName: String) {
                         Text(text = "State")
                         checkLEDState(device, mCheckedState.value)
                     }
-
                 }
             }
 

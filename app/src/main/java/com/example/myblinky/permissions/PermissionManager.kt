@@ -24,7 +24,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 @Composable
 fun requireScanPermission(): Boolean {
     val context = LocalContext.current
-    val permissionsGranted: Boolean
+    val isLocationPermissionGranted: Boolean
 
     val permissionsList = mutableListOf<String>()
 
@@ -44,11 +44,9 @@ fun requireScanPermission(): Boolean {
             }
         }
     when (multiplePermissionsState.allPermissionsGranted) {
-        true -> {
-            permissionsGranted = true
-        }
+        true -> isLocationPermissionGranted = true
         false -> {
-            permissionsGranted = false
+            isLocationPermissionGranted = false
             Surface {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -56,7 +54,7 @@ fun requireScanPermission(): Boolean {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "Location permission for this application is important. Please grant the permission!",
+                        "Location permission for this application is important in order to scan for BLE devices. Please grant the permission!",
                         textAlign = TextAlign.Center
                     )
                     Button(
@@ -68,5 +66,5 @@ fun requireScanPermission(): Boolean {
             }
         }
     }
-    return permissionsGranted
+    return isLocationPermissionGranted
 }
