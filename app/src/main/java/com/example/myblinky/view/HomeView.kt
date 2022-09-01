@@ -87,7 +87,10 @@ fun ScannedDevices(navController: NavController) {
 }
 
 @Composable
-fun ShowScannedDevices(navController: NavController, devices: ScanResult) {
+fun ShowScannedDevices(
+    navController: NavController,
+    devices: ScanResult,
+) {
     val viewModel = hiltViewModel<HomeViewModel>()
     Surface(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
@@ -102,10 +105,10 @@ fun ShowScannedDevices(navController: NavController, devices: ScanResult) {
                     .weight(1f)
                     .fillMaxWidth()
                     .clickable {
-                        navController.navigate(
-                            "${NavigationConst.CONNECT_DEVICE}/${devices.device?.name}"
-                        )
                         viewModel.stopBleScan()
+                        navController.navigate(
+                            "${NavigationConst.CONNECT_DEVICE}/${devices.device?.address}"
+                        )
                     }
             ) {
                 Column() {

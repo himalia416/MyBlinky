@@ -2,12 +2,15 @@ package com.example.myblinky
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
-import android.content.IntentFilter
+import android.content.*
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation.NavType
@@ -15,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myblinky.adapter.BluetoothLeService
 import com.example.myblinky.model.checkBluetoothStatus
 import com.example.myblinky.view.ConnectDeviceView
 import com.example.myblinky.view.HomeView
@@ -22,6 +26,9 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private var bluetoothService: BluetoothLeService? = null
+    private val TAG = "BluetoothLeService"
+
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,21 +41,63 @@ class MainActivity : ComponentActivity() {
             NavHost(
                 navController = navController,
                 startDestination = NavigationConst.HOME
-            )
-            {
+            ) {
                 composable(NavigationConst.HOME) { HomeView(navController, isBluetoothEnabled) }
                 composable(
                     "${NavigationConst.CONNECT_DEVICE}/{devices}",
                     arguments = listOf(navArgument("devices") { type = NavType.StringType })
                 ) { backStackEntry ->
-                    backStackEntry.arguments?.getString("devices")?.let {
+                    backStackEntry.arguments?.getString("devices")?.let { deviceAddress ->
+                        LaunchedEffect(deviceAddress) {
+                            connect(deviceAddress)
+                        }
                         ConnectDeviceView(
                             navController = navController,
-                            it
+                            deviceAddress
                         )
                     }
                 }
             }
+        }
+    }
+
+    private var deviceAddress: String? = null
+
+    private fun connect(deviceAddress: String) {
+        val intent = Intent(this, BluetoothLeService::class.java)
+        intent.putExtra("ADDRESS", deviceAddress)
+        this.deviceAddress = deviceAddress
+        bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    private val serviceConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(
+            componentName: ComponentName,
+            service: IBinder
+        ) {
+            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
+            bluetoothService?.let { bluetooth ->
+                // call functions on service to check connection and connect to devices
+                if (!bluetooth.initialize()) {
+                    Log.e(TAG, "Unable to initialize Bluetooth")
+                    finish()
+                }
+                // perform device connection
+
+                bluetoothService!!.connectDeviceService(deviceAddress!!)
+            }
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName?) {
+            bluetoothService = null
+        }
+
+        override fun onBindingDied(name: ComponentName?) {
+            super.onBindingDied(name)
+        }
+
+        override fun onNullBinding(name: ComponentName?) {
+            super.onNullBinding(name)
         }
     }
 
@@ -63,4 +112,41 @@ class MainActivity : ComponentActivity() {
         isBluetoothEnabled.value = bluetoothAdapter.isEnabled
         return isBluetoothEnabled
     }
+
+    private var updateConnectionState: Boolean = false
+    private val gattUpdateReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                BluetoothLeService.ACTION_GATT_CONNECTED -> {
+                    updateConnectionState = true
+                }
+                BluetoothLeService.ACTION_GATT_DISCONNECTED -> {
+                    updateConnectionState = false
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
+        if (bluetoothService != null) {
+            val result = intent.getStringExtra("ADDRESS")
+                ?.let { bluetoothService!!.connectDeviceService(it) }
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(gattUpdateReceiver)
+    }
+
+    private fun makeGattUpdateIntentFilter(): IntentFilter? {
+        return IntentFilter().apply {
+            addAction(BluetoothLeService.ACTION_GATT_CONNECTED)
+            addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED)
+        }
+    }
+
+
 }
