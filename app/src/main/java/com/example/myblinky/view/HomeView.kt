@@ -49,6 +49,7 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
 fun Scanning(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val isLocationPermissionGranted = requireScanPermission()
+
     Surface(
         color = Color.White,
         modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
@@ -79,6 +80,7 @@ fun Scanning(navController: NavController) {
 fun ScannedDevices(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val devices: State<List<ScanResult>> = viewModel.mLeDevices.collectAsState()
+
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(items = devices.value) { devices ->
             ShowScannedDevices(navController, devices = devices)
@@ -92,6 +94,7 @@ fun ShowScannedDevices(
     devices: ScanResult,
 ) {
     val viewModel = hiltViewModel<HomeViewModel>()
+
     Surface(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {

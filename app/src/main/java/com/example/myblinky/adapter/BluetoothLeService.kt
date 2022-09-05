@@ -6,13 +6,12 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
 
 val UUID_SERVICE_DEVICE = UUID.fromString("00001523-1212-efde-1523-785feabcd123")
-var buttonState = MutableLiveData<Boolean>(false)
 
 class BluetoothLeService : Service() {
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -22,6 +21,7 @@ class BluetoothLeService : Service() {
     private var connectionState = STATE_DISCONNECTED
     private var address: String? = null
     private val ledState = MutableLiveData<Boolean>()
+    private var buttonState = MutableStateFlow(false)
 
     private val ledCharacteristic: BluetoothGattCharacteristic? = null
     var ledOn: Boolean? = null
@@ -33,10 +33,6 @@ class BluetoothLeService : Service() {
     private val UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR =
         UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
-//    fun getButtonState(): LiveData<Boolean> {
-//        return buttonState
-//    }
-
     private fun onLedStateChanged(
         on: Boolean
     ) {
@@ -45,18 +41,6 @@ class BluetoothLeService : Service() {
         ledState.value = on
     }
 
-//    fun turnLed(on: Boolean) {
-//        if (ledCharacteristic == null) return
-//
-//        // No need to change?
-//        if (ledOn == on) return
-//        Log.d(TAG, "Turning LED " + (if (on) "ON" else "OFF") + "...")
-//        writeCharacteristic(
-//            ledCharacteristic,
-//            BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-//        )
-//    }
-
     override fun onBind(intent: Intent): IBinder {
         address = intent.getStringExtra("ADDRESS")
         return binder
@@ -64,49 +48,73 @@ class BluetoothLeService : Service() {
 
     //    To access to the service for the activity
     inner class LocalBinder : Binder(), BlinkyAPI {
+
+        override fun initialize(): Boolean {
+            if (bluetoothAdapter == null) {
+                Log.e(TAG, "Unable to obtain a BluetoothAdapter.")
+                return false
+            }
+            return true
+        }
+
         override fun disconnect() {
 
         }
 
-        override suspend fun turnLed(device: BluetoothDevice, on: Boolean) {
+        override fun turnLed(on: Boolean) {
 
         }
-        override fun getButtonState(): LiveData<Boolean> {
+
+        override fun getButtonState(): Flow<Boolean> {
             return buttonState
         }
-//        override fun buttonState(): Flow<Boolean> {
-//return
-//        }
 
+        override fun connectDeviceService(address: String) {
+            bluetoothAdapter?.let { adapter ->
+                try {
+                    val device = adapter.getRemoteDevice(address)
+                    bluetoothGatt =
+                        device.connectGatt(this@BluetoothLeService, true, bluetoothGattCallback)
+                } catch (exception: IllegalArgumentException) {
+                    Log.w(TAG, "Device not found with provided address.")
 
-        fun getService(): BluetoothLeService {
-            return this@BluetoothLeService
+                }
+                // connect to the GATT server on the device
+            } ?: run {
+                Log.w(TAG, "BluetoothAdapter not initialized")
+            }
         }
-    }
-    fun buttonDataCallback(status: ByteArray?){
-        if (status.contentEquals(STATE_RELEASED)){
-            buttonState.postValue(true)
-            Log.e("button data callback:", "button data callback Released ${status?.toHexString()}, buttonState ${buttonState.value}")
-        }
-        else if (status.contentEquals(STATE_PRESSED)){
-            buttonState.postValue(false)
-            Log.e("button data callback:", "button data callback Pressed ${status?.toHexString()} buttonState ${buttonState.value}")
-        }
-        else Log.e("button data callback:", "button data callback ${status?.toHexString()} and STATE_Pressed $STATE_PRESSED" +
-                "buttonState ${buttonState.value}")
+
     }
 
-    fun initialize(): Boolean {
-        if (bluetoothAdapter == null) {
-            Log.e(TAG, "Unable to obtain a BluetoothAdapter.")
-            return false
-        }
-        return true
+    fun buttonDataCallback(status: ByteArray?) {
+        if (status.contentEquals(STATE_PRESSED)) {
+            buttonState.value = true
+            Log.e(
+                "button data callback:",
+                "button data callback Pressed  ${status?.toHexString()}, buttonState ${buttonState.value}"
+            )
+        } else if (status.contentEquals(STATE_RELEASED)) {
+            buttonState.value = false
+            Log.e(
+                "button data callback:",
+                "button data callback Released ${status?.toHexString()} buttonState ${buttonState.value}"
+            )
+        } else Log.e(
+            "button data callback:",
+            "button data callback ${status?.toHexString()} and STATE_Pressed $STATE_PRESSED" +
+                    "buttonState ${buttonState.value}"
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return super.onStartCommand(intent, flags, startId)
+        intent?.extras?.getString("ADDRESS")?.let { address ->
+            // connect
+            binder.connectDeviceService(address)
+        }
+        return START_NOT_STICKY
     }
+
 
     private fun broadcastUpdate(action: String) {
         val intent = Intent(action)
@@ -144,10 +152,8 @@ class BluetoothLeService : Service() {
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
                 var gattServices: List<BluetoothGattService> =
                     gatt?.services as List<BluetoothGattService>
-//                Log.e("onServiceDiscovered", "Services count: ${gattServices.size}")
                 for (gattService in gattServices) {
                     var serviceUUID = gattService.uuid.toString()
-//                    Log.e("OnServicesDiscovered", "Service uuid: $serviceUUID")
                     readCharacteristic(gattService)
                     Log.e(
                         "Read characteristics on:",
@@ -195,26 +201,12 @@ class BluetoothLeService : Service() {
             characteristic: BluetoothGattCharacteristic?,
             status: Int
         ) {
-           if (status == BluetoothGatt.GATT_SUCCESS){
-               Log.i("BluetoothGattCallback", "Wrote to characteristic ${characteristic?.uuid} ")
-           }
-        }
-    }
-
-    fun connectDeviceService(address: String) {
-        bluetoothAdapter?.let { adapter ->
-            try {
-                val device = adapter.getRemoteDevice(address)
-                bluetoothGatt = device.connectGatt(this, true, bluetoothGattCallback)
-            } catch (exception: IllegalArgumentException) {
-                Log.w(TAG, "Device not found with provided address.")
-
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.i("BluetoothGattCallback", "Wrote to characteristic ${characteristic?.uuid} ")
             }
-            // connect to the GATT server on the device
-        } ?: run {
-            Log.w(TAG, "BluetoothAdapter not initialized")
         }
     }
+
 
     companion object {
         const val ACTION_GATT_CONNECTED =
@@ -252,13 +244,11 @@ class BluetoothLeService : Service() {
             return
         }
         val gattCharacteristic: List<BluetoothGattCharacteristic> = service!!.characteristics
-//        Log.i(TAG, "**LEO LAS ${gattCharacteristic.count()} CARACTERISTICAS DE $service**")
         val readButtonChar =
             bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_BUTTON_CHAR)
         for (characteristic in gattCharacteristic) {
             Log.e("readCharacteristic", "Service characteristic: ${characteristic.uuid}")
             if (characteristic.uuid == UUID_BUTTON_CHAR) {
-//                    bluetoothGatt!!.setCharacteristicNotification(characteristic, true)
                 Log.e(
                     "Yee readCharacteristic",
                     "Button Characteristics found: ${characteristic.uuid}"
@@ -313,7 +303,6 @@ class BluetoothLeService : Service() {
                 characteristic?.getDescriptor(UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR)
             descriptor?.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
             bluetoothGatt?.writeDescriptor(descriptor!!)
-//            bluetoothGatt?.writeDescriptor(descriptor!!, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
         }
     }
 

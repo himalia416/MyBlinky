@@ -12,12 +12,14 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myblinky.adapter.BlinkyAPI
 import com.example.myblinky.adapter.BluetoothLeService
 import com.example.myblinky.model.checkBluetoothStatus
 import com.example.myblinky.view.ConnectDeviceView
@@ -26,7 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private var bluetoothService: BluetoothLeService? = null
+    private var blinky: BlinkyAPI? = null
     private val TAG = "BluetoothLeService"
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -53,7 +55,9 @@ class MainActivity : ComponentActivity() {
                         }
                         ConnectDeviceView(
                             navController = navController,
-                            deviceAddress
+                            deviceAddress,
+                            onLedChange = { blinky?.turnLed(it) },
+                            blinky?.getButtonState()?.collectAsState(false)?.value ?: false
                         )
                     }
                 }
@@ -64,9 +68,11 @@ class MainActivity : ComponentActivity() {
     private var deviceAddress: String? = null
 
     private fun connect(deviceAddress: String) {
+        this.deviceAddress = deviceAddress
+
         val intent = Intent(this, BluetoothLeService::class.java)
         intent.putExtra("ADDRESS", deviceAddress)
-        this.deviceAddress = deviceAddress
+        startService(intent)
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
@@ -75,21 +81,18 @@ class MainActivity : ComponentActivity() {
             componentName: ComponentName,
             service: IBinder
         ) {
-            bluetoothService = (service as BluetoothLeService.LocalBinder).getService()
-            bluetoothService?.let { bluetooth ->
+            blinky = service as BlinkyAPI
+            blinky?.let { bluetooth ->
                 // call functions on service to check connection and connect to devices
                 if (!bluetooth.initialize()) {
                     Log.e(TAG, "Unable to initialize Bluetooth")
                     finish()
                 }
-                // perform device connection
-
-                bluetoothService!!.connectDeviceService(deviceAddress!!)
             }
         }
 
         override fun onServiceDisconnected(componentName: ComponentName?) {
-            bluetoothService = null
+            blinky = null
         }
 
         override fun onBindingDied(name: ComponentName?) {
@@ -130,9 +133,9 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
-        if (bluetoothService != null) {
+        if (blinky != null) {
             val result = intent.getStringExtra("ADDRESS")
-                ?.let { bluetoothService!!.connectDeviceService(it) }
+                ?.let { blinky!!.connectDeviceService(it) }
         }
     }
 

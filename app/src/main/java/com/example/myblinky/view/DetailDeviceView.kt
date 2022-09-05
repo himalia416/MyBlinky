@@ -13,27 +13,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.view.MotionEventCompat.getButtonState
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Observer
 import androidx.navigation.NavController
-import com.example.myblinky.adapter.BluetoothLeService
-import com.example.myblinky.adapter.buttonState
-import com.example.myblinky.viewmodel.HomeViewModel
 
 
 @Composable
-fun ConnectDeviceView(navController: NavController, deviceName: String) {
-    val viewModel = hiltViewModel<HomeViewModel>()
-    val ledStateOn = "ON"
-    val ledStateOff = "OFF"
+fun ConnectDeviceView(
+    navController: NavController,
+    deviceName: String,
+    onLedChange: (Boolean) -> Unit,
+    buttonsState: Boolean,
+) {
     val buttonName = "BUTTON"
     val ledName = "LED"
     val ledDescription = "Toggle the switch to turn LED on or off"
-    val buttonPressed = "PRESSED"
-    val buttonReleased = "RELEASED"
-    val buttonDescription = "Press Button #xx on the dev kit"
-        Column {
+    val buttonDescription = "Press Button 1 on the dev kit"
+
+    Column {
         TopAppBar(
             title = { Text(text = deviceName) },
             navigationIcon = if (navController.previousBackStackEntry != null) {
@@ -52,103 +47,140 @@ fun ConnectDeviceView(navController: NavController, deviceName: String) {
         Column(
             modifier = Modifier.padding(2.dp)
         ) {
-            @Composable
-            fun checkLEDState(buttonStyle: String, isPressed: Boolean) {
-                val stateOn: String
-                val stateOff: String
-                if (buttonStyle == ledName) {
-                    stateOn = ledStateOn
-                    stateOff = ledStateOff
-
-                } else {
-                    stateOn = buttonPressed
-                    stateOff = buttonReleased
-                }
-                Text(
-                    text = when (isPressed) {
-                        true -> stateOn
-                        false -> stateOff
-                    }, modifier = Modifier.padding(10.dp)
-                )
-            }
-
-            @Composable
-            fun toggleDevice(device: String) {
-                val mCheckedState = remember {
-                    mutableStateOf(false)
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .fillMaxWidth(),
-                ) {
-                    if (device == ledName) {
-                        checkLEDState(device, mCheckedState.value)
-                        Switch(
-                            checked = mCheckedState.value,
-                            onCheckedChange = { mCheckedState.value = it },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.DarkGray,
-                                uncheckedThumbColor = Color.Gray,
-                                checkedTrackColor = Color.Blue,
-                                uncheckedTrackColor = Color.LightGray,
-                            )
-                        )
-
-                    } else {
-
-//                       var isPressed: Boolean? by buttonState.observe()
-                        var isPressed = Observer<Boolean> {btnState ->
-                            mCheckedState.value = btnState}
-                        viewModel.getBtnState()
-                        Text(text = "${mCheckedState.value}")
-                        checkLEDState(device, mCheckedState.value)
-                    }
-
-                    }
-                }
-//            }
-
-            @Composable
-            fun LedView(name: String, itemDescription: String) {
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 2.dp),
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(vertical = 15.dp)
-
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp)
-                        ) {
-                            Text(
-                                text = name,
-                                modifier = Modifier.padding(4.dp),
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = itemDescription,
-                                modifier = Modifier.padding(4.dp),
-                                textAlign = TextAlign.Center
-                            )
-                            toggleDevice(name)
-
-                        }
-                    }
-                }
-            }
-
-            LedView(name = ledName, itemDescription = ledDescription)
-            LedView(name = buttonName, itemDescription = buttonDescription)
+            LedView(name = ledName, itemDescription = ledDescription, onLedChange)
+            ButtonView(name = buttonName, itemDescription = buttonDescription, buttonsState)
         }
+    }
+}
+
+@Composable
+fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Unit) {
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(horizontal = 2.dp),
+    ) {
+        Card(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 15.dp)
+
+        ) {
+            Column(
+                modifier = Modifier.padding(10.dp)
+            ) {
+                Text(
+                    text = name,
+                    modifier = Modifier.padding(4.dp),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = itemDescription,
+                    modifier = Modifier.padding(4.dp),
+                    textAlign = TextAlign.Center
+                )
+                toggleLedSwitch(name, onLedChange)
+
+            }
+        }
+    }
+}
+
+@Composable
+fun ButtonView(name: String, itemDescription: String, buttonsState: Boolean) {
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(horizontal = 2.dp),
+    ) {
+        Card(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 15.dp)
+
+        ) {
+            Column(
+                modifier = Modifier.padding(10.dp)
+            ) {
+                Text(
+                    text = name,
+                    modifier = Modifier.padding(4.dp),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = itemDescription,
+                    modifier = Modifier.padding(4.dp),
+                    textAlign = TextAlign.Center
+                )
+                onButtonPressed(name, buttonsState)
+
+            }
+        }
+    }
+}
+
+@Composable
+fun onButtonPressed(device: String, buttonsState: Boolean) {
+    val mCheckedState = remember {
+        mutableStateOf(false)
+    }
+    val buttonPressed = "PRESSED"
+    val buttonReleased = "RELEASED"
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(2.dp)
+            .fillMaxWidth(),
+    ) {
+
+        mCheckedState.value = buttonsState
+        Text(text = "State")
+        Text(
+            text = when (mCheckedState.value) {
+                true -> buttonPressed
+                false -> buttonReleased
+            }, modifier = Modifier.padding(10.dp)
+        )
+    }
+}
+
+@Composable
+fun toggleLedSwitch(device: String, onLedChange: (Boolean) -> Unit) {
+    val mCheckedState = remember {
+        mutableStateOf(false)
+    }
+    val ledStateOn = "ON"
+    val ledStateOff = "OFF"
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(2.dp)
+            .fillMaxWidth(),
+    ) {
+        Text(
+            text = when (mCheckedState.value) {
+                true -> ledStateOn
+                false -> ledStateOff
+            }, modifier = Modifier.padding(10.dp)
+        )
+        Switch(
+            checked = mCheckedState.value,
+            onCheckedChange = onLedChange,// { mCheckedState.value = it },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.DarkGray,
+                uncheckedThumbColor = Color.Gray,
+                checkedTrackColor = Color.Blue,
+                uncheckedTrackColor = Color.LightGray,
+            )
+        )
+
     }
 }
