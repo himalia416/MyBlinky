@@ -13,11 +13,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.view.MotionEventCompat.getButtonState
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
+import com.example.myblinky.adapter.BluetoothLeService
+import com.example.myblinky.adapter.buttonState
+import com.example.myblinky.viewmodel.HomeViewModel
 
 
 @Composable
 fun ConnectDeviceView(navController: NavController, deviceName: String) {
+    val viewModel = hiltViewModel<HomeViewModel>()
     val ledStateOn = "ON"
     val ledStateOff = "OFF"
     val buttonName = "BUTTON"
@@ -26,7 +33,7 @@ fun ConnectDeviceView(navController: NavController, deviceName: String) {
     val buttonPressed = "PRESSED"
     val buttonReleased = "RELEASED"
     val buttonDescription = "Press Button #xx on the dev kit"
-    Column {
+        Column {
         TopAppBar(
             title = { Text(text = deviceName) },
             navigationIcon = if (navController.previousBackStackEntry != null) {
@@ -92,14 +99,21 @@ fun ConnectDeviceView(navController: NavController, deviceName: String) {
                         )
 
                     } else {
-                        Text(text = "State")
+
+//                       var isPressed: Boolean? by buttonState.observe()
+                        var isPressed = Observer<Boolean> {btnState ->
+                            mCheckedState.value = btnState}
+                        viewModel.getBtnState()
+                        Text(text = "${mCheckedState.value}")
                         checkLEDState(device, mCheckedState.value)
                     }
+
+                    }
                 }
-            }
+//            }
 
             @Composable
-            fun detailDeviceItems(name: String, itemDescription: String) {
+            fun LedView(name: String, itemDescription: String) {
 
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -132,8 +146,9 @@ fun ConnectDeviceView(navController: NavController, deviceName: String) {
                     }
                 }
             }
-            detailDeviceItems(name = ledName, itemDescription = ledDescription)
-            detailDeviceItems(name = buttonName, itemDescription = buttonDescription)
+
+            LedView(name = ledName, itemDescription = ledDescription)
+            LedView(name = buttonName, itemDescription = buttonDescription)
         }
     }
 }
