@@ -6,7 +6,7 @@ interface BlinkyAPI {
     fun initialize(): Boolean
     fun connectDeviceService(address: String)
     fun disconnect()
-    fun turnLed(on: Boolean = true)
+    fun turnLed(on: Boolean)
     fun getButtonState(): Flow<Boolean>
     fun turn(on: Boolean): ByteArray
     fun turnOn(): ByteArray

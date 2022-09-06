@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
@@ -23,7 +22,7 @@ class BluetoothLeService : Service() {
     private var address: String? = null
     private var buttonState = MutableStateFlow(false)
 
-    private val ledCharacteristic: BluetoothGattCharacteristic? = null
+    private var ledCharacteristic: BluetoothGattCharacteristic? = null
     private val STATE_RELEASED = byteArrayOf(0x00)
     private val STATE_PRESSED = byteArrayOf(0x01)
     private val STATE_OFF: ByteArray = byteArrayOf(0x00)
@@ -52,10 +51,11 @@ class BluetoothLeService : Service() {
         }
 
         override fun disconnect() {
-
         }
 
         override fun turnLed(on: Boolean) {
+            ledCharacteristic =
+                bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_LED_CHAR)
             writeCharacteristic(
                 ledCharacteristic,
                 turn(on),
@@ -180,7 +180,6 @@ class BluetoothLeService : Service() {
         ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
-                val data = characteristic.value
                 setCharacteristicNotification(characteristic = characteristic, true)
 
             } else {
@@ -195,10 +194,9 @@ class BluetoothLeService : Service() {
         ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.e("BluetoothGattCallback", "Write to characteristic ${characteristic?.uuid} ")
-                setCharacteristicNotification(characteristic = characteristic, true)
-                gatt?.writeCharacteristic(characteristic)
+            } else {
+                Log.i(TAG, "ACTION_DATA_WRITE: Error$status")
             }
-            super.onCharacteristicWrite(gatt, characteristic, status)
         }
     }
 
@@ -270,7 +268,7 @@ class BluetoothLeService : Service() {
             bluetoothGatt?.let { gatt ->
                 characteristic?.writeType = WRITE_TYPE_DEFAULT
                 characteristic?.value = payload
-                gatt.writeCharacteristic(writeLedChar)
+                gatt.writeCharacteristic(writeLedChar!!, payload, WRITE_TYPE_DEFAULT)
             } ?: error("Not connected to a BLE device!")
         }
 
@@ -288,12 +286,12 @@ class BluetoothLeService : Service() {
         if (this.UUID_BUTTON_CHAR == characteristic?.uuid) {
             val descriptor =
                 characteristic?.getDescriptor(UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR)
-            descriptor?.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+            descriptor?.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             bluetoothGatt?.writeDescriptor(descriptor!!)
         } else if (this.UUID_LED_CHAR == characteristic?.uuid) {
             val descriptor =
                 characteristic?.getDescriptor(UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR)
-            descriptor?.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+            descriptor?.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             bluetoothGatt?.writeDescriptor(descriptor!!)
         }
     }

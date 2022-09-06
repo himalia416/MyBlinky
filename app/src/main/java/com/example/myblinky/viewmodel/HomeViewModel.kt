@@ -29,7 +29,7 @@ class HomeViewModel @Inject constructor(
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 super.onScanResult(callbackType, result)
                 if (!mLeDevices.value.contains(result) && result != null) {
-                    if (result.device?.name != null ) { //&& result.device?.uuids?.contains(ParcelUuid(LBS_UUID_SERVICE)) == true) {
+                    if (result.device?.name != null) { //&& result.device?.uuids?.contains(ParcelUuid(LBS_UUID_SERVICE)) == true) {
                         mLeDevices.value += result
                     }
 //                    Log.d("BLE Manager", "Device: $result")
@@ -47,6 +47,8 @@ class HomeViewModel @Inject constructor(
         bleManager.bluetoothLeScanner.stopScan(leScanCallback)
     }
 }
+
+
 
 
 
