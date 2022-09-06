@@ -61,7 +61,7 @@ fun Scanning(navController: NavController) {
                 .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isLocationPermissionGranted) {
+            if (requireScanPermission()) {
                 ScannedDevices(navController)
                 LaunchedEffect(isLocationPermissionGranted) {
                     viewModel.startScanning()

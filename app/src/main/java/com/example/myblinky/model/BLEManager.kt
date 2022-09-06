@@ -2,18 +2,15 @@ package com.example.myblinky.model
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
-import android.bluetooth.le.*
-import android.content.Context
+import android.bluetooth.le.BluetoothLeScanner
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanSettings
 import android.os.Build
 import android.os.ParcelUuid
 import androidx.annotation.RequiresApi
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat.getSystemService
-import dagger.Binds
-import dagger.Provides
+import com.example.myblinky.adapter.UUID_SERVICE_DEVICE
 import javax.inject.Inject
-import javax.inject.Singleton
 
 
 @SuppressLint("NewApi")
@@ -38,7 +35,8 @@ class BLEManager @Inject constructor(
 
     private fun scanFilters(): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
-        val scanFilterName = ScanFilter.Builder().setDeviceName(null).build()
+        val scanFilterName =
+            ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()
         list.add(scanFilterName)
         return list
     }

@@ -53,7 +53,7 @@ fun ConnectDeviceView(
 
 @Composable
 fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Unit) {
-
+    var isLedOn by remember { mutableStateOf(false) }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -79,9 +79,10 @@ fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Uni
                     modifier = Modifier.padding(4.dp),
                     textAlign = TextAlign.Center
                 )
-
-                var isLedOn by remember { mutableStateOf(false)}
-                toggleLedSwitch(change = isLedOn, onLedChange = { isLedOn = it})
+                toggleLedSwitch(change = isLedOn, onLedChange = {
+                    onLedChange(it)
+                    isLedOn = it
+                })
 
             }
         }
