@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -81,7 +79,9 @@ fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Uni
                     modifier = Modifier.padding(4.dp),
                     textAlign = TextAlign.Center
                 )
-                toggleLedSwitch(name, onLedChange)
+
+                var isLedOn by remember { mutableStateOf(false)}
+                toggleLedSwitch(change = isLedOn, onLedChange = { isLedOn = it})
 
             }
         }
@@ -116,15 +116,14 @@ fun ButtonView(name: String, itemDescription: String, buttonsState: Boolean) {
                     modifier = Modifier.padding(4.dp),
                     textAlign = TextAlign.Center
                 )
-                onButtonPressed(name, buttonsState)
-
+                onButtonPressed(buttonsState)
             }
         }
     }
 }
 
 @Composable
-fun onButtonPressed(device: String, buttonsState: Boolean) {
+fun onButtonPressed(buttonsState: Boolean) {
     val mCheckedState = remember {
         mutableStateOf(false)
     }
@@ -151,10 +150,7 @@ fun onButtonPressed(device: String, buttonsState: Boolean) {
 }
 
 @Composable
-fun toggleLedSwitch(device: String, onLedChange: (Boolean) -> Unit) {
-    val mCheckedState = remember {
-        mutableStateOf(false)
-    }
+fun toggleLedSwitch(change: Boolean, onLedChange: (Boolean) -> Unit) {
     val ledStateOn = "ON"
     val ledStateOff = "OFF"
 
@@ -166,14 +162,14 @@ fun toggleLedSwitch(device: String, onLedChange: (Boolean) -> Unit) {
             .fillMaxWidth(),
     ) {
         Text(
-            text = when (mCheckedState.value) {
+            text = when (change) {
                 true -> ledStateOn
                 false -> ledStateOff
             }, modifier = Modifier.padding(10.dp)
         )
         Switch(
-            checked = mCheckedState.value,
-            onCheckedChange = onLedChange,// { mCheckedState.value = it },
+            checked = change,
+            onCheckedChange = onLedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.DarkGray,
                 uncheckedThumbColor = Color.Gray,
@@ -181,6 +177,5 @@ fun toggleLedSwitch(device: String, onLedChange: (Boolean) -> Unit) {
                 uncheckedTrackColor = Color.LightGray,
             )
         )
-
     }
 }
