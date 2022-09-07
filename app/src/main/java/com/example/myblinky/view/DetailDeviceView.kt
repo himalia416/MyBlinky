@@ -54,6 +54,7 @@ fun ConnectDeviceView(
 @Composable
 fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Unit) {
     var isLedOn by remember { mutableStateOf(false) }
+    
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -69,11 +70,15 @@ fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Uni
             Column(
                 modifier = Modifier.padding(10.dp)
             ) {
-                Text(
-                    text = name,
-                    modifier = Modifier.padding(4.dp),
-                    fontWeight = FontWeight.Bold
-                )
+                Row(modifier = Modifier.padding(10.dp)) {
+
+                    Text(
+                        text = name,
+                        modifier = Modifier.padding(4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
                 Text(
                     text = itemDescription,
                     modifier = Modifier.padding(4.dp),

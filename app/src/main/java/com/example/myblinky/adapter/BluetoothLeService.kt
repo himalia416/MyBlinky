@@ -10,7 +10,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
-
+/** Nordic Blinky Service UUID. */
 val UUID_SERVICE_DEVICE = UUID.fromString("00001523-1212-efde-1523-785feabcd123")
 
 class BluetoothLeService : Service() {
@@ -20,16 +20,20 @@ class BluetoothLeService : Service() {
     private var bluetoothGatt: BluetoothGatt? = null
     private var connectionState = STATE_DISCONNECTED
     private var address: String? = null
-    private var buttonState = MutableStateFlow(false)
 
+    private var buttonState = MutableStateFlow(false)
     private var ledCharacteristic: BluetoothGattCharacteristic? = null
+
     private val STATE_RELEASED = byteArrayOf(0x00)
     private val STATE_PRESSED = byteArrayOf(0x01)
     private val STATE_OFF = byteArrayOf(0x00)
     private val STATE_ON = byteArrayOf(0x01)
 
+    /** LED characteristic UUID. */
     private val UUID_LED_CHAR = UUID.fromString("00001525-1212-efde-1523-785feabcd123")
+    /** BUTTON characteristic UUID. */
     private val UUID_BUTTON_CHAR = UUID.fromString("00001524-1212-efde-1523-785feabcd123")
+    /** Update Notification UUID. */
     private val UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR =
         UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
@@ -104,7 +108,7 @@ class BluetoothLeService : Service() {
             buttonState.value = true
         } else if (status.contentEquals(STATE_RELEASED)) {
             buttonState.value = false
-        } else Log.e(
+        } else Log.d(
             "button data callback:",
             "button data callback ${status?.toHexString()} and buttonState ${buttonState.value}"
         )
@@ -146,7 +150,7 @@ class BluetoothLeService : Service() {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
-            Log.e("Services Discovered on", "Services Discovered on ${gatt?.device}")
+            Log.i("Services Discovered on", "Services Discovered on ${gatt?.device}")
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
@@ -167,7 +171,7 @@ class BluetoothLeService : Service() {
             value: ByteArray
         ) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
-            Log.d(TAG, "characteristics changed")
+            Log.i(TAG, "characteristics changed")
             buttonDataCallback(value)
 
         }
@@ -183,7 +187,7 @@ class BluetoothLeService : Service() {
                 setCharacteristicNotification(characteristic = characteristic, true)
 
             } else {
-                Log.i(TAG, "ACTION_DATA_READ: Error$status")
+                Log.e(TAG, "ACTION_DATA_READ: Error$status")
             }
         }
 
@@ -193,9 +197,9 @@ class BluetoothLeService : Service() {
             status: Int
         ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.e("BluetoothGattCallback", "Write to characteristic ${characteristic?.uuid} ")
+                Log.d("BluetoothGattCallback", "Write to characteristic ${characteristic?.uuid} ")
             } else {
-                Log.i(TAG, "ACTION_DATA_WRITE: Error$status")
+                Log.e(TAG, "ACTION_DATA_WRITE: Error$status")
             }
         }
     }
@@ -236,9 +240,9 @@ class BluetoothLeService : Service() {
         val readButtonChar =
             bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_BUTTON_CHAR)
         for (characteristic in gattCharacteristic) {
-            Log.e("readCharacteristic", "Service characteristic: ${characteristic.uuid}")
+            Log.d("readCharacteristic", "Service characteristic: ${characteristic.uuid}")
             if (characteristic.uuid == UUID_BUTTON_CHAR) {
-                Log.e(
+                Log.d(
                     "readCharacteristic",
                     "Button Characteristics found: ${characteristic.uuid}"
                 )
@@ -246,7 +250,7 @@ class BluetoothLeService : Service() {
                 setCharacteristicNotification(characteristic = readButtonChar, true)
             }
         }
-        Log.e("OnServicesDiscovered", "-----------------------------")
+        Log.i("OnServicesDiscovered", "-----------------------------")
     }
 
     fun writeCharacteristic(
@@ -288,7 +292,7 @@ class BluetoothLeService : Service() {
         }
     }
 
-    fun ByteArray.toHexString(): String =
+    private fun ByteArray.toHexString(): String =
         joinToString(separator = " ", prefix = "0x") { String.format("%02X", it) }
 }
 
