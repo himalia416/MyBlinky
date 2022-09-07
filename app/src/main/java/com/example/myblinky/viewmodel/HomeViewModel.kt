@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.os.Build
+import android.os.Handler
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.myblinky.model.BLEManager
@@ -15,8 +16,24 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val bleManager: BLEManager
 ) : ViewModel() {
+    // Stops scanning after 10 seconds.
+    private val SCAN_PERIOD: Long = 10000
+    private var scanning = false
+    private val handler = Handler()
+
     @SuppressLint("StaticFieldLeak")
     fun startScanning() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (!scanning) { // Stops scanning after a pre-defined scan period.
+            handler.postDelayed({
+                scanning = false
+                stopBleScan()
+            }, SCAN_PERIOD)
+            scanning = true
+            bleManager.startScanning(leScanCallback)
+        } else {
+            scanning = false
+            stopBleScan()
+        }
         bleManager.startScanning(leScanCallback)
     } else {
         TODO("VERSION.SDK_INT < M")
@@ -28,11 +45,12 @@ class HomeViewModel @Inject constructor(
             @SuppressLint("MissingPermission")
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
                 super.onScanResult(callbackType, result)
-                if (!mLeDevices.value.contains(result) && result != null) {
-                    if (result.device?.name != null) { //&& result.device?.uuids?.contains(ParcelUuid(LBS_UUID_SERVICE)) == true) {
-                        mLeDevices.value += result
+                if (!mLeDevices.value.equals(result) && result != null) {
+                    if (result.device?.name != null) {
+                        if (checkDuplicateScanResult(mLeDevices.value, result)) {
+                                mLeDevices.value += result
+                            }
                     }
-//                    Log.d("BLE Manager", "Device: $result")
                 }
             }
 
@@ -43,9 +61,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun checkDuplicateScanResult(value: List<ScanResult>, result: ScanResult): Boolean {
+        val checkDevice = value.count { it.device == result.device }
+        return checkDevice < 1
+    }
+
     fun stopBleScan() {
         bleManager.bluetoothLeScanner.stopScan(leScanCallback)
     }
+
 }
 
 

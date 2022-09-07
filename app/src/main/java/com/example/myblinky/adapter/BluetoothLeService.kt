@@ -25,8 +25,8 @@ class BluetoothLeService : Service() {
     private var ledCharacteristic: BluetoothGattCharacteristic? = null
     private val STATE_RELEASED = byteArrayOf(0x00)
     private val STATE_PRESSED = byteArrayOf(0x01)
-    private val STATE_OFF: ByteArray = byteArrayOf(0x00)
-    private val STATE_ON: ByteArray = byteArrayOf(0x01)
+    private val STATE_OFF = byteArrayOf(0x00)
+    private val STATE_ON = byteArrayOf(0x01)
 
     private val UUID_LED_CHAR = UUID.fromString("00001525-1212-efde-1523-785feabcd123")
     private val UUID_BUTTON_CHAR = UUID.fromString("00001524-1212-efde-1523-785feabcd123")
@@ -244,18 +244,10 @@ class BluetoothLeService : Service() {
                 )
                 bluetoothGatt!!.readCharacteristic(readButtonChar)
                 setCharacteristicNotification(characteristic = readButtonChar, true)
-            } else if (characteristic.uuid == UUID_LED_CHAR) {
-                Log.e(
-                    "read LED Characteristic",
-                    "LED Characteristics found: ${characteristic.uuid}"
-                )
-                bluetoothGatt!!.writeCharacteristic(characteristic)
-                setCharacteristicNotification(characteristic = readButtonChar, true)
             }
         }
         Log.e("OnServicesDiscovered", "-----------------------------")
     }
-
 
     fun writeCharacteristic(
         characteristic: BluetoothGattCharacteristic?,
