@@ -3,10 +3,7 @@ package com.example.myblinky.permissions
 import android.Manifest
 import android.os.Build
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -49,7 +46,7 @@ fun requireScanPermission(): Boolean {
             isLocationPermissionGranted = false
             Surface {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().fillMaxHeight(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {

@@ -65,9 +65,6 @@ fun Scanning(navController: NavController) {
                 ScannedDevices(navController)
                 LaunchedEffect(isLocationPermissionGranted) {
                     viewModel.startScanning()
-                    if (isLocationPermissionGranted) {
-                        viewModel.startScanning()
-                    }
                 }
             }
         }
