@@ -1,5 +1,6 @@
 package com.example.myblinky.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -8,10 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.myblinky.R
 
 
 @Composable
@@ -21,10 +24,6 @@ fun ConnectDeviceView(
     onLedChange: (Boolean) -> Unit,
     buttonsState: Boolean,
 ) {
-    val buttonName = "BUTTON"
-    val ledName = "LED"
-    val ledDescription = "Toggle the switch to turn LED on or off"
-    val buttonDescription = "Press Button 1 on the dev kit"
 
     Column {
         TopAppBar(
@@ -34,7 +33,7 @@ fun ConnectDeviceView(
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(id = R.string.back)
                         )
                     }
                 }
@@ -45,8 +44,16 @@ fun ConnectDeviceView(
         Column(
             modifier = Modifier.padding(2.dp)
         ) {
-            LedView(name = ledName, itemDescription = ledDescription, onLedChange)
-            ButtonView(name = buttonName, itemDescription = buttonDescription, buttonsState)
+            LedView(
+                name = stringResource(id = R.string.led_name), itemDescription = stringResource(
+                    id = R.string.led_description
+                ), onLedChange
+            )
+            ButtonView(
+                name = stringResource(id = R.string.button_name),
+                itemDescription = stringResource(id = R.string.button_description),
+                buttonsState
+            )
         }
     }
 }
@@ -54,7 +61,7 @@ fun ConnectDeviceView(
 @Composable
 fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Unit) {
     var isLedOn by remember { mutableStateOf(false) }
-    
+
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -78,7 +85,7 @@ fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Uni
                         fontWeight = FontWeight.Bold
                     )
                 }
-                
+
                 Text(
                     text = itemDescription,
                     modifier = Modifier.padding(4.dp),
@@ -133,8 +140,6 @@ fun onButtonPressed(buttonsState: Boolean) {
     val mCheckedState = remember {
         mutableStateOf(false)
     }
-    val buttonPressed = "PRESSED"
-    val buttonReleased = "RELEASED"
 
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,8 +153,8 @@ fun onButtonPressed(buttonsState: Boolean) {
         Text(text = "State")
         Text(
             text = when (mCheckedState.value) {
-                true -> buttonPressed
-                false -> buttonReleased
+                true -> stringResource(id = R.string.button_pressed)
+                false -> stringResource(id = R.string.button_released)
             }, modifier = Modifier.padding(10.dp)
         )
     }
@@ -157,8 +162,6 @@ fun onButtonPressed(buttonsState: Boolean) {
 
 @Composable
 fun toggleLedSwitch(change: Boolean, onLedChange: (Boolean) -> Unit) {
-    val ledStateOn = "ON"
-    val ledStateOff = "OFF"
 
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -169,8 +172,8 @@ fun toggleLedSwitch(change: Boolean, onLedChange: (Boolean) -> Unit) {
     ) {
         Text(
             text = when (change) {
-                true -> ledStateOn
-                false -> ledStateOff
+                true -> stringResource(id = R.string.led_on)
+                false -> stringResource(id = R.string.led_off)
             }, modifier = Modifier.padding(10.dp)
         )
         Switch(

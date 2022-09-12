@@ -48,7 +48,7 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
 @Composable
 fun Scanning(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val isLocationPermissionGranted = requireScanPermission()
+    val isLocationPermissionGranted = requireScanPermission().collectAsState(false).value
 
     Surface(
         color = Color.White,
@@ -61,7 +61,7 @@ fun Scanning(navController: NavController) {
                 .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (requireScanPermission()) {
+            if (requireScanPermission().collectAsState(false).value) {
                 ScannedDevices(navController)
                 LaunchedEffect(isLocationPermissionGranted) {
                     viewModel.startScanning()

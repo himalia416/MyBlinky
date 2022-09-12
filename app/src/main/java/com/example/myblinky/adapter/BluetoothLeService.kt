@@ -1,15 +1,19 @@
 package com.example.myblinky.adapter
 
+import android.annotation.SuppressLint
 import android.app.Service
 import android.bluetooth.*
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
 import android.content.Intent
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import com.example.myblinky.callback.LedDataCallback
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
+
 /** Nordic Blinky Service UUID. */
 val UUID_SERVICE_DEVICE = UUID.fromString("00001523-1212-efde-1523-785feabcd123")
 
@@ -30,12 +34,13 @@ class BluetoothLeService : Service() {
     private val STATE_ON = byteArrayOf(0x01)
 
     /** LED characteristic UUID. */
-    private val UUID_LED_CHAR = UUID.fromString("00001525-1212-efde-1523-785feabcd123")
+    private val UUID_LED_CHAR by lazy { UUID.fromString("00001525-1212-efde-1523-785feabcd123") }
+
     /** BUTTON characteristic UUID. */
-    private val UUID_BUTTON_CHAR = UUID.fromString("00001524-1212-efde-1523-785feabcd123")
+    private val UUID_BUTTON_CHAR by lazy { UUID.fromString("00001524-1212-efde-1523-785feabcd123") }
+
     /** Update Notification UUID. */
-    private val UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR =
-        UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+    private val UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR by lazy { UUID.fromString("00002902-0000-1000-8000-00805f9b34fb") }
 
 
     override fun onBind(intent: Intent): IBinder {
@@ -54,24 +59,17 @@ class BluetoothLeService : Service() {
             return true
         }
 
-        override fun disconnect() {
-        }
-
         override fun turnLed(on: Boolean) {
-            ledCharacteristic =
-                bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_LED_CHAR)
             writeCharacteristic(
                 ledCharacteristic,
                 turn(on),
-                BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                WRITE_TYPE_DEFAULT
             )
         }
 
-        override fun turn(on: Boolean): ByteArray {
-            return if (on) {
-                turnOn()
-            } else turnOff()
-        }
+        override fun turn(on: Boolean): ByteArray = if (on) {
+            turnOn()
+        } else turnOff()
 
         override fun turnOn(): ByteArray {
             return STATE_ON
@@ -108,8 +106,8 @@ class BluetoothLeService : Service() {
             buttonState.value = true
         } else if (status.contentEquals(STATE_RELEASED)) {
             buttonState.value = false
-        } else Log.d(
-            "button data callback:",
+        } else Log.e(
+            "button data callback error:",
             "button data callback ${status?.toHexString()} and buttonState ${buttonState.value}"
         )
     }
@@ -128,15 +126,8 @@ class BluetoothLeService : Service() {
         sendBroadcast(intent)
     }
 
-    private fun broadcastUpdate(action: String, characteristic: BluetoothGattCharacteristic?) {
-        val intent = Intent(action)
-        sendBroadcast(intent)
-    }
-
-
     private val bluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            val deviceAddress = gatt?.device?.address
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 connectionState = STATE_CONNECTED   // successfully connected to the GATT Server
                 broadcastUpdate(ACTION_GATT_CONNECTED)
@@ -157,8 +148,8 @@ class BluetoothLeService : Service() {
                 val gattServices: List<BluetoothGattService> =
                     gatt?.services as List<BluetoothGattService>
                 for (gattService in gattServices) {
-                    var serviceUUID = gattService.uuid.toString()
                     readCharacteristic(gattService)
+                    ledCharacteristic = gattService.getCharacteristic(UUID_LED_CHAR)
                 }
             } else {
                 Log.w(TAG, "onServicesDiscovered received: $status")
@@ -170,7 +161,7 @@ class BluetoothLeService : Service() {
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray
         ) {
-            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
+            broadcastUpdate(ACTION_DATA_AVAILABLE)
             Log.i(TAG, "characteristics changed")
             buttonDataCallback(value)
 
@@ -183,9 +174,8 @@ class BluetoothLeService : Service() {
             status: Int
         ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic)
+                broadcastUpdate(ACTION_DATA_AVAILABLE)
                 setCharacteristicNotification(characteristic = characteristic, true)
-
             } else {
                 Log.e(TAG, "ACTION_DATA_READ: Error$status")
             }
@@ -237,8 +227,6 @@ class BluetoothLeService : Service() {
             return
         }
         val gattCharacteristic: List<BluetoothGattCharacteristic> = service!!.characteristics
-        val readButtonChar =
-            bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_BUTTON_CHAR)
         for (characteristic in gattCharacteristic) {
             Log.d("readCharacteristic", "Service characteristic: ${characteristic.uuid}")
             if (characteristic.uuid == UUID_BUTTON_CHAR) {
@@ -246,8 +234,8 @@ class BluetoothLeService : Service() {
                     "readCharacteristic",
                     "Button Characteristics found: ${characteristic.uuid}"
                 )
-                bluetoothGatt!!.readCharacteristic(readButtonChar)
-                setCharacteristicNotification(characteristic = readButtonChar, true)
+                bluetoothGatt!!.readCharacteristic(characteristic)
+                setCharacteristicNotification(characteristic = characteristic, true)
             }
         }
         Log.i("OnServicesDiscovered", "-----------------------------")
@@ -258,16 +246,15 @@ class BluetoothLeService : Service() {
         payload: ByteArray,
         writeTypeDefault: Int
     ) {
-        val writeLedChar =
-            bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_LED_CHAR)
-        if (characteristic?.uuid == UUID_LED_CHAR) {
-            bluetoothGatt?.let { gatt ->
-                characteristic?.writeType = WRITE_TYPE_DEFAULT
+        bluetoothGatt?.let { gatt ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                gatt.writeCharacteristic(characteristic!!, payload, writeTypeDefault)
+            } else {
+                characteristic?.writeType = writeTypeDefault
                 characteristic?.value = payload
-                gatt.writeCharacteristic(writeLedChar!!, payload, WRITE_TYPE_DEFAULT)
-            } ?: error("Not connected to a BLE device!")
-        }
-
+                gatt.writeCharacteristic(characteristic!!)
+            }
+        } ?: error("Not connected to a BLE device!")
     }
 
     fun setCharacteristicNotification(

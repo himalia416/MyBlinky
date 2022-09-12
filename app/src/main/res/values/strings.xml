@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">My Blinky</string>
+    <string name="back">BACK</string>
+    <string name="button_name">BUTTON</string>
+    <string name="led_name">LED</string>
+    <string name="led_description">Toggle the switch to turn LED on or off</string>
+    <string name="button_description">Press Button 1 on the dev kit </string>
+    <string name="button_pressed">PRESSED</string>
+    <string name="button_released">RELEASED</string>
+    <string name="led_on">ON</string>
+    <string name="led_off">OFF</string>
 </resources>

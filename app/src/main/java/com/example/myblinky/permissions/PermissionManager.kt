@@ -15,13 +15,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalPermissionsApi::class)
 
 @Composable
-fun requireScanPermission(): Boolean {
+fun requireScanPermission(): Flow<Boolean> {
     val context = LocalContext.current
-    val isLocationPermissionGranted: Boolean
+    val isLocationPermissionGranted = MutableStateFlow(false)
 
     val permissionsList = mutableListOf<String>()
 
@@ -41,9 +43,9 @@ fun requireScanPermission(): Boolean {
             }
         }
     when (multiplePermissionsState.allPermissionsGranted) {
-        true -> isLocationPermissionGranted = true
+        true -> isLocationPermissionGranted.value = true
         false -> {
-            isLocationPermissionGranted = false
+            isLocationPermissionGranted.value = false
             Surface {
                 Column(
                     modifier = Modifier.fillMaxSize().fillMaxHeight(),
