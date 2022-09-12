@@ -4,33 +4,38 @@ import android.annotation.SuppressLint
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.os.Build
-import android.os.Handler
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.myblinky.model.BLEManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(
+abstract class HomeViewModel @Inject constructor(
     private val bleManager: BLEManager
 ) : ViewModel() {
     // Stops scanning after 10 seconds.
     private val SCAN_PERIOD: Long = 10000
     private var scanning = false
-    private val handler = Handler()
+    private var handler: Job? = null
 
     @SuppressLint("StaticFieldLeak")
     fun startScanning() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         if (!scanning) { // Stops scanning after a pre-defined scan period.
-            handler.postDelayed({
+            handler = viewModelScope.launch (Dispatchers.Default) {
+                delay(SCAN_PERIOD)
                 scanning = false
                 stopBleScan()
-            }, SCAN_PERIOD)
+            }
             scanning = true
             bleManager.startScanning(leScanCallback)
-        } else {
+        }else {
             scanning = false
             stopBleScan()
         }
@@ -48,8 +53,8 @@ class HomeViewModel @Inject constructor(
                 if (!mLeDevices.value.equals(result) && result != null) {
                     if (result.device?.name != null) {
                         if (checkDuplicateScanResult(mLeDevices.value, result)) {
-                                mLeDevices.value += result
-                            }
+                            mLeDevices.value += result
+                        }
                     }
                 }
             }

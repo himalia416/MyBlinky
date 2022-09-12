@@ -1,6 +1,5 @@
 package com.example.myblinky.adapter
 
-import android.annotation.SuppressLint
 import android.app.Service
 import android.bluetooth.*
 import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
@@ -9,7 +8,6 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import com.example.myblinky.callback.LedDataCallback
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
