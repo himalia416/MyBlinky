@@ -1,6 +1,5 @@
 package com.example.myblinky.view
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -71,13 +70,13 @@ fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Uni
         Card(
             modifier = Modifier
                 .weight(1f)
-                .padding(vertical = 15.dp)
+                .padding(vertical = 16.dp)
 
         ) {
             Column(
-                modifier = Modifier.padding(10.dp)
+                modifier = Modifier.padding(8.dp)
             ) {
-                Row(modifier = Modifier.padding(10.dp)) {
+                Row(modifier = Modifier.padding(8.dp)) {
 
                     Text(
                         text = name,
@@ -113,11 +112,11 @@ fun ButtonView(name: String, itemDescription: String, buttonsState: Boolean) {
         Card(
             modifier = Modifier
                 .weight(1f)
-                .padding(vertical = 15.dp)
+                .padding(vertical = 16.dp)
 
         ) {
             Column(
-                modifier = Modifier.padding(10.dp)
+                modifier = Modifier.padding(8.dp)
             ) {
                 Text(
                     text = name,

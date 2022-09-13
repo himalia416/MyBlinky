@@ -30,8 +30,8 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
         TopAppBar(
             title = { Text(stringResource(id = R.string.app_name)) }
         )
-        Column(modifier = Modifier.padding(1.dp)) {
-            Surface(color = MaterialTheme.colors.background) {
+        Column(modifier = Modifier.padding(2.dp)) {
+            Surface {
                 if (isBluetoothEnabled.value) {
                     Log.i("Bluetooth state is: ", "$isBluetoothEnabled")
                     Scanning(navController)

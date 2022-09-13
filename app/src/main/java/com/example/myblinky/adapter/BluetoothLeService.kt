@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
 
 /** Nordic Blinky Service UUID. */
-val UUID_SERVICE_DEVICE = UUID.fromString("00001523-1212-efde-1523-785feabcd123")
+val UUID_SERVICE_DEVICE: UUID? = UUID.fromString("00001523-1212-efde-1523-785feabcd123")
 
 class BluetoothLeService : Service() {
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -25,6 +25,7 @@ class BluetoothLeService : Service() {
 
     private var buttonState = MutableStateFlow(false)
     private var ledCharacteristic: BluetoothGattCharacteristic? = null
+    private var buttonCharacteristic: BluetoothGattCharacteristic? = null
 
     private val STATE_RELEASED = byteArrayOf(0x00)
     private val STATE_PRESSED = byteArrayOf(0x01)
@@ -224,18 +225,10 @@ class BluetoothLeService : Service() {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        val gattCharacteristic: List<BluetoothGattCharacteristic> = service!!.characteristics
-        for (characteristic in gattCharacteristic) {
-            Log.d("readCharacteristic", "Service characteristic: ${characteristic.uuid}")
-            if (characteristic.uuid == UUID_BUTTON_CHAR) {
-                Log.d(
-                    "readCharacteristic",
-                    "Button Characteristics found: ${characteristic.uuid}"
-                )
-                bluetoothGatt!!.readCharacteristic(characteristic)
-                setCharacteristicNotification(characteristic = characteristic, true)
-            }
-        }
+        buttonCharacteristic =
+            bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_BUTTON_CHAR)
+        bluetoothGatt!!.readCharacteristic(buttonCharacteristic)
+        setCharacteristicNotification(characteristic = buttonCharacteristic, true)
         Log.i("OnServicesDiscovered", "-----------------------------")
     }
 
@@ -265,11 +258,6 @@ class BluetoothLeService : Service() {
         }
         bluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
         if (this.UUID_BUTTON_CHAR == characteristic?.uuid) {
-            val descriptor =
-                characteristic?.getDescriptor(UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR)
-            descriptor?.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-            bluetoothGatt?.writeDescriptor(descriptor!!)
-        } else if (this.UUID_LED_CHAR == characteristic?.uuid) {
             val descriptor =
                 characteristic?.getDescriptor(UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR)
             descriptor?.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE

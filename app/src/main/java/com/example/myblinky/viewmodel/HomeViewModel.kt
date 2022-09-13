@@ -23,7 +23,7 @@ import javax.inject.Inject
     // Stops scanning after 10 seconds.
     private val SCAN_PERIOD: Long = 10000
     private var scanning = false
-    private var handler: Job? = null
+    private var viewModelJob: Job? = null
 
     @SuppressLint("StaticFieldLeak")
     fun startScanning() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -32,7 +32,7 @@ import javax.inject.Inject
                 delay(SCAN_PERIOD)
                 scanning = false
                 stopBleScan()
-            }.also { handler = it }
+            }.also { viewModelJob = it }
             scanning = true
             bleManager.startScanning(leScanCallback)
         } else {
