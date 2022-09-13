@@ -134,7 +134,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter())
         if (blinky != null) {
-            val result = intent.getStringExtra("ADDRESS")
+            intent.getStringExtra("ADDRESS")
                 ?.let { blinky!!.connectDeviceService(it) }
         }
     }

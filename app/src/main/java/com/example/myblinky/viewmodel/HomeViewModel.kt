@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-abstract class HomeViewModel @Inject constructor(
+ class HomeViewModel @Inject constructor(
     private val bleManager: BLEManager
 ) : ViewModel() {
     // Stops scanning after 10 seconds.
@@ -28,14 +28,14 @@ abstract class HomeViewModel @Inject constructor(
     @SuppressLint("StaticFieldLeak")
     fun startScanning() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         if (!scanning) { // Stops scanning after a pre-defined scan period.
-            handler = viewModelScope.launch (Dispatchers.Default) {
+            viewModelScope.launch (Dispatchers.Main) {
                 delay(SCAN_PERIOD)
                 scanning = false
                 stopBleScan()
-            }
+            }.also { handler = it }
             scanning = true
             bleManager.startScanning(leScanCallback)
-        }else {
+        } else {
             scanning = false
             stopBleScan()
         }

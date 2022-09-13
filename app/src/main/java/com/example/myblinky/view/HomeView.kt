@@ -20,7 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.myblinky.NavigationConst
 import com.example.myblinky.R
-import com.example.myblinky.permissions.requireScanPermission
+import com.example.myblinky.permissions.RequireScanPermission
 import com.example.myblinky.viewmodel.HomeViewModel
 
 @RequiresApi(Build.VERSION_CODES.M)
@@ -48,22 +48,20 @@ fun HomeView(navController: NavController, isBluetoothEnabled: MutableState<Bool
 @Composable
 fun Scanning(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
-    val isLocationPermissionGranted = requireScanPermission().collectAsState(false).value
 
     Surface(
         color = Color.White,
-        modifier = Modifier.padding(vertical = 0.dp, horizontal = 4.dp)
+        modifier = Modifier.padding( horizontal = 4.dp)
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 20.dp),
+                .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (requireScanPermission().collectAsState(false).value) {
+            RequireScanPermission {
                 ScannedDevices(navController)
-                LaunchedEffect(isLocationPermissionGranted) {
+                LaunchedEffect(navController) {
                     viewModel.startScanning()
                 }
             }
@@ -111,17 +109,17 @@ fun ShowScannedDevices(
                         )
                     }
             ) {
-                Column() {
+                Column {
                     Text(
                         text = devices.device?.name.toString(),
                         modifier = Modifier
-                            .padding(vertical = 15.dp, horizontal = 10.dp),
+                            .padding(vertical = 16.dp, horizontal = 8.dp),
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = devices.device?.address.toString(),
                         modifier = Modifier
-                            .padding(vertical = 15.dp, horizontal = 10.dp)
+                            .padding(vertical = 16.dp, horizontal = 8.dp)
                     )
                     Divider()
                 }

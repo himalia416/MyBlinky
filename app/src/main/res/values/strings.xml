@@ -9,4 +9,5 @@
     <string name="button_released">RELEASED</string>
     <string name="led_on">ON</string>
     <string name="led_off">OFF</string>
+    <string name="location_permission_info">Location permission for this application is important in order to scan for BLE devices. Please grant the permission!</string>
 </resources>

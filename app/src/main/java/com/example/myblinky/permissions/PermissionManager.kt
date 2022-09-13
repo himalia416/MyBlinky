@@ -11,20 +11,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.myblinky.R
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalPermissionsApi::class)
 
 @Composable
-fun requireScanPermission(): Flow<Boolean> {
+fun RequireScanPermission(
+    content: @Composable () -> Unit,
+) {
     val context = LocalContext.current
-    val isLocationPermissionGranted = MutableStateFlow(false)
-
     val permissionsList = mutableListOf<String>()
 
     if (Build.VERSION.SDK_INT in 26..30) {
@@ -43,27 +43,38 @@ fun requireScanPermission(): Flow<Boolean> {
             }
         }
     when (multiplePermissionsState.allPermissionsGranted) {
-        true -> isLocationPermissionGranted.value = true
+        true -> content()
         false -> {
-            isLocationPermissionGranted.value = false
-            Surface {
-                Column(
-                    modifier = Modifier.fillMaxSize().fillMaxHeight(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "Location permission for this application is important in order to scan for BLE devices. Please grant the permission!",
-                        textAlign = TextAlign.Center
-                    )
-                    Button(
-                        modifier = Modifier.padding(vertical = 24.dp),
-                        onClick = { multiplePermissionsState.launchMultiplePermissionRequest() }) {
-                        Text("Request permission")
-                    }
-                }
+            NoLocationPermission(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                multiplePermissionsState.launchMultiplePermissionRequest()
             }
         }
     }
-    return isLocationPermissionGranted
+}
+
+@Composable
+private fun NoLocationPermission(
+    modifier: Modifier = Modifier,
+    onRequestPermission: () -> Unit,
+) {
+    Surface {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                stringResource(id = R.string.location_permission_info),
+                textAlign = TextAlign.Center
+            )
+            Button(
+                modifier = Modifier.padding(vertical = 24.dp),
+                onClick = onRequestPermission
+            ) {
+                Text("Request permission")
+            }
+        }
+    }
 }
