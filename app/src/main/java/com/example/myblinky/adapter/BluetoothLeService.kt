@@ -147,7 +147,7 @@ class BluetoothLeService : Service() {
                 val gattServices: List<BluetoothGattService> =
                     gatt?.services as List<BluetoothGattService>
                 for (gattService in gattServices) {
-                    readCharacteristic(gattService)
+                    readCharacteristic()
                     ledCharacteristic = gattService.getCharacteristic(UUID_LED_CHAR)
                 }
             } else {
@@ -160,7 +160,6 @@ class BluetoothLeService : Service() {
             characteristic: BluetoothGattCharacteristic,
             value: ByteArray
         ) {
-            broadcastUpdate(ACTION_DATA_AVAILABLE)
             Log.i(TAG, "characteristics changed")
             buttonDataCallback(value)
 
@@ -220,7 +219,7 @@ class BluetoothLeService : Service() {
         }
     }
 
-    fun readCharacteristic(service: BluetoothGattService?) {
+    fun readCharacteristic() {
         if (bluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return

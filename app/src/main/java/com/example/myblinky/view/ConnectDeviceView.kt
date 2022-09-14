@@ -1,9 +1,10 @@
 package com.example.myblinky.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.Card
+import androidx.compose.material.Switch
+import androidx.compose.material.SwitchDefaults
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,33 +13,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.myblinky.R
+import no.nordicsemi.android.common.navigation.NavigationManager
+import no.nordicsemi.android.common.theme.view.NordicAppBar
 
 
 @Composable
 fun ConnectDeviceView(
-    navController: NavController,
-    deviceName: String,
+    navigationManager: NavigationManager,
+    deviceAddress: String,
     onLedChange: (Boolean) -> Unit,
     buttonsState: Boolean,
 ) {
 
     Column {
-        TopAppBar(
-            title = { Text(text = deviceName) },
-            navigationIcon = if (navController.previousBackStackEntry != null) {
-                {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = stringResource(id = R.string.back)
-                        )
-                    }
-                }
-            } else {
-                null
-            }
+        NordicAppBar(
+            text = deviceAddress,
+            onNavigationButtonClick = { navigationManager.navigateUp() }
         )
         Column(
             modifier = Modifier.padding(2.dp)
@@ -118,17 +109,29 @@ fun ButtonView(name: String, itemDescription: String, buttonsState: Boolean) {
             Column(
                 modifier = Modifier.padding(8.dp)
             ) {
-                Text(
-                    text = name,
-                    modifier = Modifier.padding(4.dp),
-                    fontWeight = FontWeight.Bold
-                )
+                Row(modifier = Modifier.padding(8.dp)) {
+
+                    Text(
+                        text = name,
+                        modifier = Modifier.padding(4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Text(
                     text = itemDescription,
                     modifier = Modifier.padding(4.dp),
                     textAlign = TextAlign.Center
                 )
-                onButtonPressed(buttonsState)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .fillMaxWidth(),
+                ) {
+                    Text(text = "State")
+                    onButtonPressed(buttonsState)
+                }
             }
         }
     }
@@ -139,24 +142,13 @@ fun onButtonPressed(buttonsState: Boolean) {
     val mCheckedState = remember {
         mutableStateOf(false)
     }
-
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(2.dp)
-            .fillMaxWidth(),
-    ) {
-
-        mCheckedState.value = buttonsState
-        Text(text = "State")
-        Text(
-            text = when (mCheckedState.value) {
-                true -> stringResource(id = R.string.button_pressed)
-                false -> stringResource(id = R.string.button_released)
-            }, modifier = Modifier.padding(10.dp)
-        )
-    }
+    mCheckedState.value = buttonsState
+    Text(
+        text = when (mCheckedState.value) {
+            true -> stringResource(id = R.string.button_pressed)
+            false -> stringResource(id = R.string.button_released)
+        }, modifier = Modifier.padding(8.dp)
+    )
 }
 
 @Composable
@@ -173,7 +165,7 @@ fun toggleLedSwitch(change: Boolean, onLedChange: (Boolean) -> Unit) {
             text = when (change) {
                 true -> stringResource(id = R.string.led_on)
                 false -> stringResource(id = R.string.led_off)
-            }, modifier = Modifier.padding(10.dp)
+            }, modifier = Modifier.padding(8.dp)
         )
         Switch(
             checked = change,
