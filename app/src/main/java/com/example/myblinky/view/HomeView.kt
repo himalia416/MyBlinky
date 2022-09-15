@@ -7,9 +7,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Divider
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -24,7 +27,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.myblinky.ConnectViewParams
 import com.example.myblinky.NavigationConst
 import com.example.myblinky.R
-import com.example.myblinky.viewmodel.HomeViewModel
+import com.example.myblinky.viewmodel.ScanningViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.NavigationManager
 import no.nordicsemi.android.common.permission.RequireBluetooth
@@ -33,31 +37,26 @@ import no.nordicsemi.android.common.theme.view.NordicAppBar
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun HomeView(navController: NavigationManager) {
-    val viewModel = hiltViewModel<HomeViewModel>()
-
+    val viewModel = hiltViewModel<ScanningViewModel>()
     Column {
         NordicAppBar(
-            text = stringResource(id = R.string.app_name)
-        )
+            text = stringResource(id = R.string.app_name),
+            )
         Column(modifier = Modifier.padding(2.dp)) {
-            Surface {
-                RequireBluetooth {
-                    Surface(
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-//                            RequireScanPermission {
-                                ScannedDevices(navController)
-                                LaunchedEffect(navController) {
-                                    viewModel.startScanning()
-                                }
-//                            }
+            Surface(
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    RequireBluetooth {
+                        ScannedDevices(navController)
+                        LaunchedEffect(navController) {
+                            viewModel.startScanning()
                         }
                     }
                 }
@@ -68,7 +67,7 @@ fun HomeView(navController: NavigationManager) {
 
 @Composable
 fun ScannedDevices(navController: NavigationManager) {
-    val viewModel = hiltViewModel<HomeViewModel>()
+    val viewModel = hiltViewModel<ScanningViewModel>()
     val devices: State<List<ScanResult>> = viewModel.mLeDevices.collectAsState()
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -84,7 +83,7 @@ fun ShowScannedDevices(
     navigationManager: NavigationManager,
     devices: ScanResult,
 ) {
-    val viewModel = hiltViewModel<HomeViewModel>()
+    val viewModel = hiltViewModel<ScanningViewModel>()
     val connectDevice = DestinationId(NavigationConst.CONNECT_DEVICE)
 
     Surface(

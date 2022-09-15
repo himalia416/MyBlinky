@@ -12,10 +12,12 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.myblinky.adapter.BlinkyAPI
 import com.example.myblinky.adapter.BluetoothLeService
 import com.example.myblinky.view.ConnectDeviceView
 import com.example.myblinky.view.HomeView
+import com.example.myblinky.viewmodel.NavigationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.navigation.*
 import no.nordicsemi.android.common.theme.NordicActivity
@@ -40,14 +42,18 @@ class MainActivity : NordicActivity() {
     private val Main = DestinationId(NavigationConst.HOME)
     private val ConnectView = DestinationId(NavigationConst.CONNECT_DEVICE)
 
+
     private val destinations =
         ComposeDestinations(listOf(
             ComposeDestination(Main) { navigationManager ->
                 HomeView(navigationManager)
             },
             ComposeDestination(ConnectView) { navigationManager ->
-                deviceAddress?.let { deviceAddress ->
-                    Log.e("Device address", deviceAddress)
+
+                val viewModel = hiltViewModel<NavigationViewModel>()
+                val connectDeviceArgs = viewModel.connectDeviceArgs
+                    .collectAsState(initial = null).value
+                (connectDeviceArgs as? ConnectViewParams)?.device?.let { deviceAddress ->
                     LaunchedEffect(deviceAddress) {
                         connect(deviceAddress)
                     }
@@ -65,7 +71,7 @@ class MainActivity : NordicActivity() {
 
     private var deviceAddress: String? = null
 
-    private fun connect(deviceAddress: String) {
+     fun connect(deviceAddress: String) {
         this.deviceAddress = deviceAddress
 
         val intent = Intent(this, BluetoothLeService::class.java)
