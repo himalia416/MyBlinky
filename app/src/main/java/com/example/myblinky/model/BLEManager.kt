@@ -31,19 +31,21 @@ class BLEManager @Inject constructor(
             .build()
     }
 
-    private fun scanFilters(): MutableList<ScanFilter> {
+    private fun scanFilters(filterSelectedValue: Boolean): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
         val scanFilterName =
-            ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()
+            if (filterSelectedValue){
+            ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()}
+        else ScanFilter.Builder().setDeviceName(null).build()
         list.add(scanFilterName)
         return list
     }
 
     @SuppressLint("MissingPermission")
-    fun startScanning(scanCallback: ScanCallback) {
+    fun startScanning(scanCallback: ScanCallback, filterSelectedValue: Boolean) {
         bluetoothLeScanner
             .startScan(
-                scanFilters(),
+                scanFilters(filterSelectedValue),
                 scanSettings,
                 scanCallback
 

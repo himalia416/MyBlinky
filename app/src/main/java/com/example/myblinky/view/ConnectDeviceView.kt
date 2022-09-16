@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import com.example.myblinky.R
 import no.nordicsemi.android.common.navigation.NavigationManager
 import no.nordicsemi.android.common.theme.view.NordicAppBar
-import kotlin.math.log
 
 
 @Composable
@@ -24,7 +23,7 @@ fun ConnectDeviceView(
     navigationManager: NavigationManager,
     device: BluetoothDevice,
     onLedChange: (Boolean) -> Unit,
-    buttonsState: Boolean,
+    buttonState: Boolean,
 ) {
     Column {
         NordicAppBar(
@@ -46,7 +45,7 @@ fun ConnectDeviceView(
             ButtonView(
                 name = stringResource(id = R.string.button_name),
                 itemDescription = stringResource(id = R.string.button_description),
-                buttonsState = buttonsState,
+                buttonsState = buttonState,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -129,12 +128,9 @@ fun ButtonState(
     buttonsState: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val isPressed = remember {
-        mutableStateOf(buttonsState)
-    }
     Log.w("button pressed", "button pressed $buttonsState")
     Text(
-        text = when (isPressed.value) {
+        text = when (buttonsState) {
             true -> stringResource(id = R.string.button_pressed)
             false -> stringResource(id = R.string.button_released)
         },

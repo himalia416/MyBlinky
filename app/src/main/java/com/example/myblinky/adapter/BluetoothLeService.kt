@@ -16,7 +16,7 @@ import java.util.*
 
 class BluetoothLeService : Service() {
     private val _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-    private val binder = LocalBinder()
+    private var binder: LocalBinder? = LocalBinder()
     private val TAG = "BluetoothLeService"
     private var bluetoothGatt: BluetoothGatt? = null
     private var connectionState = STATE_DISCONNECTED
@@ -40,10 +40,9 @@ class BluetoothLeService : Service() {
     /** Update Notification UUID. */
     private val UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR by lazy { UUID.fromString("00002902-0000-1000-8000-00805f9b34fb") }
 
-
     override fun onBind(intent: Intent): IBinder {
         address = intent.getStringExtra("ADDRESS")
-        return binder
+        return binder as LocalBinder
     }
 
     //    To access to the service for the activity
@@ -111,9 +110,10 @@ class BluetoothLeService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("AAA", "onStartCommand")
         intent?.extras?.getString("ADDRESS")?.let { address ->
             // connect
-            binder.connectDeviceService(address)
+            binder?.connectDeviceService(address)
         }
         return START_NOT_STICKY
     }
@@ -219,6 +219,8 @@ class BluetoothLeService : Service() {
             gatt.close()
             bluetoothGatt = null
         }
+        binder = null
+        stopSelf()
     }
 
     fun readCharacteristic() {

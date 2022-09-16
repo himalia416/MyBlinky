@@ -26,7 +26,7 @@ import javax.inject.Inject
     private var viewModelJob: Job? = null
 
     @SuppressLint("StaticFieldLeak")
-    fun startScanning() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    fun startScanning(filterSelectedValue: Boolean) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         if (!scanning) { // Stops scanning after a pre-defined scan period.
             viewModelScope.launch (Dispatchers.Main) {
                 delay(SCAN_PERIOD)
@@ -34,12 +34,13 @@ import javax.inject.Inject
                 stopBleScan()
             }.also { viewModelJob = it }
             scanning = true
-            bleManager.startScanning(leScanCallback)
+            println("filter value in hiltviewmodel: $filterSelectedValue")
+            bleManager.startScanning(leScanCallback, filterSelectedValue)
         } else {
             scanning = false
             stopBleScan()
         }
-        bleManager.startScanning(leScanCallback)
+        bleManager.startScanning(leScanCallback, filterSelectedValue)
     } else {
         TODO("VERSION.SDK_INT < M")
     }

@@ -4,19 +4,12 @@ import android.bluetooth.le.ScanResult
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,17 +29,18 @@ import no.nordicsemi.android.common.theme.view.NordicAppBar
 @Composable
 fun ScanningView(navController: NavigationManager) {
     val viewModel = hiltViewModel<ScanningViewModel>()
-    var dropDownMenuExpanded by remember {
-        mutableStateOf(false)
+    val filterSelectedValue = remember {
+        mutableStateOf(true)
     }
 
     Column {
         NordicAppBar(
             text = stringResource(id = R.string.app_name),
             actions = {
-                addFilterOption()
+                addTopBarFilterOption(filterSelectedValue)
             }
         )
+
         Column(modifier = Modifier.padding(16.dp)) {
             Column(
                 modifier = Modifier
@@ -57,7 +51,7 @@ fun ScanningView(navController: NavigationManager) {
                 RequireBluetooth {
                     ScannedDevices(navController)
                     LaunchedEffect(navController) {
-                        viewModel.startScanning()
+                        viewModel.startScanning(filterSelectedValue.value)
                     }
                 }
             }
@@ -65,27 +59,35 @@ fun ScanningView(navController: NavigationManager) {
     }
 }
 
-
 @Composable
-fun addFilterOption() {
+private fun addTopBarFilterOption(filterSelectedValue: MutableState<Boolean>) {
     var expanded by remember { mutableStateOf(false) }
-    val suggestions = listOf("Only devices advertising LBS UUID", "All devices")
-    val icon = if (expanded)
-        Icons.Default.ArrowDropUp
-    else
-        Icons.Default.FilterList
-
-
-    Column() {
-        Icon(icon, "contentDescription",
-            Modifier.clickable { expanded = !expanded })
+    val filterOptions = listOf(
+        stringResource(id = R.string.filter_menu_lbs),
+        stringResource(id = R.string.filter_menu_all_devices)
+    )
+    var mSelectedText by remember { mutableStateOf("") }
+    Box {
+        IconButton(
+            onClick = { expanded = !expanded }
+        ) {
+            Icon(
+                imageVector = Icons.Filled.FilterList,
+                contentDescription = stringResource(id = R.string.menu_filter)
+            )
+        }
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false},
-        ) {
-
+            onDismissRequest = { expanded = false }) {
+            filterOptions.forEach { label ->
+                DropdownMenuItem(onClick = {
+                    mSelectedText = label
+                    expanded = false
+                }, text = { Text(text = label) })
+            }
         }
     }
+    filterSelectedValue.value = mSelectedText == stringResource(id = R.string.filter_menu_lbs)
 }
 
 @Composable
