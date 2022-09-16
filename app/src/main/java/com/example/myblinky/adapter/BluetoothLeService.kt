@@ -12,11 +12,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
 
-/** Nordic Blinky Service UUID. */
-val UUID_SERVICE_DEVICE: UUID? = UUID.fromString("00001523-1212-efde-1523-785feabcd123")
+
 
 class BluetoothLeService : Service() {
-    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private val _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val binder = LocalBinder()
     private val TAG = "BluetoothLeService"
     private var bluetoothGatt: BluetoothGatt? = null
@@ -51,7 +50,7 @@ class BluetoothLeService : Service() {
     inner class LocalBinder : Binder(), BlinkyAPI {
 
         override fun initialize(): Boolean {
-            if (bluetoothAdapter == null) {
+            if (_bluetoothAdapter == null) {
                 Log.e(TAG, "Unable to obtain a BluetoothAdapter.")
                 return false
             }
@@ -83,7 +82,7 @@ class BluetoothLeService : Service() {
         }
 
         override fun connectDeviceService(address: String) {
-            bluetoothAdapter?.let { adapter ->
+            _bluetoothAdapter?.let { adapter ->
                 try {
                     val device = adapter.getRemoteDevice(address)
                     bluetoothGatt =
@@ -204,6 +203,9 @@ class BluetoothLeService : Service() {
 
         const val STATE_DISCONNECTED = 0
         const val STATE_CONNECTED = 2
+
+        /** Nordic Blinky Service UUID. */
+        val UUID_SERVICE_DEVICE: UUID? = UUID.fromString("00001523-1212-efde-1523-785feabcd123")
 
     }
 

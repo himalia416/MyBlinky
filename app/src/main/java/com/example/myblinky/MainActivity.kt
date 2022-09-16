@@ -1,68 +1,69 @@
 package com.example.myblinky
 
+import android.bluetooth.BluetoothDevice
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.remember
 import com.example.myblinky.adapter.BlinkyAPI
 import com.example.myblinky.adapter.BluetoothLeService
 import com.example.myblinky.view.ConnectDeviceView
-import com.example.myblinky.view.HomeView
-import com.example.myblinky.viewmodel.NavigationViewModel
+import com.example.myblinky.view.ScanningView
 import dagger.hilt.android.AndroidEntryPoint
-import no.nordicsemi.android.common.navigation.*
+import no.nordicsemi.android.common.navigation.ComposeDestination
+import no.nordicsemi.android.common.navigation.ComposeDestinations
+import no.nordicsemi.android.common.navigation.DestinationId
+import no.nordicsemi.android.common.navigation.NavigationView
 import no.nordicsemi.android.common.theme.NordicActivity
 import no.nordicsemi.android.common.theme.NordicTheme
+
+
 
 @AndroidEntryPoint
 class MainActivity : NordicActivity() {
     private var blinky: BlinkyAPI? = null
     private val TAG = "BluetoothLeService"
 
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             NordicTheme {
-                NavigationView(destinations = destinations)
-
+                Surface {
+                    NavigationView(destinations = destinations)
+                }
             }
         }
     }
-
-    private val Main = DestinationId(NavigationConst.HOME)
-    private val ConnectView = DestinationId(NavigationConst.CONNECT_DEVICE)
 
 
     private val destinations =
         ComposeDestinations(listOf(
             ComposeDestination(Main) { navigationManager ->
-                HomeView(navigationManager)
+                ScanningView(navigationManager)
             },
             ComposeDestination(ConnectView) { navigationManager ->
-
-                val viewModel = hiltViewModel<NavigationViewModel>()
-                val connectDeviceArgs = viewModel.connectDeviceArgs
-                    .collectAsState(initial = null).value
-                (connectDeviceArgs as? ConnectViewParams)?.device?.let { deviceAddress ->
-                    LaunchedEffect(deviceAddress) {
-                        connect(deviceAddress)
+                val deviceSelected = remember {
+                    (navigationManager.getArgument(ConnectView) as? ConnectViewParams)?.device
+                }
+                deviceSelected?.let { device ->
+                    LaunchedEffect(device) {
+                        connect(device)
                     }
+                    val buttonsState = blinky?.getButtonState()?.collectAsState(false)?.value ?: false
                     ConnectDeviceView(
                         navigationManager = navigationManager,
-                        deviceAddress = deviceAddress,
+                        device = device,
                         onLedChange = { blinky?.turnLed(it) },
-                        buttonsState = blinky?.getButtonState()?.collectAsState(false)?.value
-                            ?: false
+                        buttonsState = buttonsState,
                     )
                 }
             }
@@ -71,8 +72,8 @@ class MainActivity : NordicActivity() {
 
     private var deviceAddress: String? = null
 
-     fun connect(deviceAddress: String) {
-        this.deviceAddress = deviceAddress
+     private fun connect(device: BluetoothDevice) {
+        this.deviceAddress = device.address
 
         val intent = Intent(this, BluetoothLeService::class.java)
         intent.putExtra("ADDRESS", deviceAddress)
@@ -86,6 +87,7 @@ class MainActivity : NordicActivity() {
             service: IBinder
         ) {
             blinky = service as BlinkyAPI
+            Log.w("AAA", "Connected $blinky")
             blinky?.let { bluetooth ->
                 // call functions on service to check connection and connect to devices
                 if (!bluetooth.initialize()) {
@@ -107,5 +109,10 @@ class MainActivity : NordicActivity() {
             super.onNullBinding(name)
         }
     }
+    companion object {
+        val Main = DestinationId(NavigationConst.HOME)
+        val ConnectView = DestinationId(NavigationConst.CONNECT_DEVICE)
+    }
+
 
 }

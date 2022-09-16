@@ -1,14 +1,14 @@
 package com.example.myblinky.view
 
+import android.bluetooth.BluetoothDevice
+import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Card
-import androidx.compose.material.Switch
-import androidx.compose.material.SwitchDefaults
-import androidx.compose.material.Text
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -16,166 +16,153 @@ import androidx.compose.ui.unit.dp
 import com.example.myblinky.R
 import no.nordicsemi.android.common.navigation.NavigationManager
 import no.nordicsemi.android.common.theme.view.NordicAppBar
+import kotlin.math.log
 
 
 @Composable
 fun ConnectDeviceView(
     navigationManager: NavigationManager,
-    deviceAddress: String,
+    device: BluetoothDevice,
     onLedChange: (Boolean) -> Unit,
     buttonsState: Boolean,
 ) {
-
     Column {
         NordicAppBar(
-            text = deviceAddress,
+            text = device.name,
             onNavigationButtonClick = { navigationManager.navigateUp() }
         )
         Column(
-            modifier = Modifier.padding(2.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             LedView(
-                name = stringResource(id = R.string.led_name), itemDescription = stringResource(
+                name = stringResource(id = R.string.led_name),
+                itemDescription = stringResource(
                     id = R.string.led_description
-                ), onLedChange
+                ),
+                onLedChange = onLedChange,
+                modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(8.dp))
             ButtonView(
                 name = stringResource(id = R.string.button_name),
                 itemDescription = stringResource(id = R.string.button_description),
-                buttonsState
+                buttonsState = buttonsState,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
 }
 
 @Composable
-fun LedView(name: String, itemDescription: String, onLedChange: (Boolean) -> Unit) {
+fun LedView(
+    name: String,
+    itemDescription: String,
+    onLedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var isLedOn by remember { mutableStateOf(false) }
 
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(horizontal = 2.dp),
+    OutlinedCard(
+        modifier = modifier
     ) {
-        Card(
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .padding(vertical = 16.dp)
-
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Row(modifier = Modifier.padding(8.dp)) {
-
-                    Text(
-                        text = name,
-                        modifier = Modifier.padding(4.dp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Text(
-                    text = itemDescription,
-                    modifier = Modifier.padding(4.dp),
-                    textAlign = TextAlign.Center
-                )
-                toggleLedSwitch(change = isLedOn, onLedChange = {
+            Text(
+                text = name,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = itemDescription,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            ToggleLedSwitch(
+                change = isLedOn,
+                onLedChange = {
                     onLedChange(it)
                     isLedOn = it
-                })
-
-            }
+                }
+            )
         }
     }
 }
 
 @Composable
-fun ButtonView(name: String, itemDescription: String, buttonsState: Boolean) {
-
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(horizontal = 2.dp),
+fun ButtonView(
+    name: String,
+    itemDescription: String,
+    buttonsState: Boolean,
+    modifier: Modifier,
+) {
+    OutlinedCard(
+        modifier = modifier
     ) {
-        Card(
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .padding(vertical = 16.dp)
-
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(8.dp)
+            Text(
+                text = name,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = itemDescription,
+                modifier = Modifier.padding(top = 4.dp),
+                textAlign = TextAlign.Center
+            )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth(),
             ) {
-                Row(modifier = Modifier.padding(8.dp)) {
-
-                    Text(
-                        text = name,
-                        modifier = Modifier.padding(4.dp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Text(
-                    text = itemDescription,
-                    modifier = Modifier.padding(4.dp),
-                    textAlign = TextAlign.Center
-                )
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .fillMaxWidth(),
-                ) {
-                    Text(text = "State")
-                    onButtonPressed(buttonsState)
-                }
+                Text(text = "State")
+                ButtonState(buttonsState)
             }
         }
     }
 }
 
 @Composable
-fun onButtonPressed(buttonsState: Boolean) {
-    val mCheckedState = remember {
-        mutableStateOf(false)
+fun ButtonState(
+    buttonsState: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val isPressed = remember {
+        mutableStateOf(buttonsState)
     }
-    mCheckedState.value = buttonsState
+    Log.w("button pressed", "button pressed $buttonsState")
     Text(
-        text = when (mCheckedState.value) {
+        text = when (isPressed.value) {
             true -> stringResource(id = R.string.button_pressed)
             false -> stringResource(id = R.string.button_released)
-        }, modifier = Modifier.padding(8.dp)
+        },
+        modifier = modifier,
     )
 }
 
 @Composable
-fun toggleLedSwitch(change: Boolean, onLedChange: (Boolean) -> Unit) {
-
+fun ToggleLedSwitch(
+    change: Boolean,
+    onLedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(2.dp)
-            .fillMaxWidth(),
+        modifier = modifier,
     ) {
         Text(
             text = when (change) {
                 true -> stringResource(id = R.string.led_on)
                 false -> stringResource(id = R.string.led_off)
-            }, modifier = Modifier.padding(8.dp)
+            },
+            modifier = Modifier.weight(1f),
         )
         Switch(
             checked = change,
             onCheckedChange = onLedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.DarkGray,
-                uncheckedThumbColor = Color.Gray,
-                checkedTrackColor = Color.Blue,
-                uncheckedTrackColor = Color.LightGray,
-            )
         )
     }
 }
