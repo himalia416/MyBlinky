@@ -9,7 +9,7 @@ import android.bluetooth.le.ScanSettings
 import android.os.Build
 import android.os.ParcelUuid
 import androidx.annotation.RequiresApi
-import com.example.myblinky.adapter.UUID_SERVICE_DEVICE
+import com.example.myblinky.adapter.BluetoothLeService.Companion.UUID_SERVICE_DEVICE
 import javax.inject.Inject
 
 
@@ -25,27 +25,27 @@ class BLEManager @Inject constructor(
         ScanSettings.Builder()
             .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
             .setLegacy(false)
-//            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
-//            .setNumOfMatches(ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT)
             .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
             .setReportDelay(0)
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
     }
 
-    private fun scanFilters(): MutableList<ScanFilter> {
+    private fun scanFilters(filterSelectedValue: Boolean): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
         val scanFilterName =
-            ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()
+            if (filterSelectedValue){
+            ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()}
+        else ScanFilter.Builder().setDeviceName(null).build()
         list.add(scanFilterName)
         return list
     }
 
     @SuppressLint("MissingPermission")
-    fun startScanning(scanCallback: ScanCallback) {
+    fun startScanning(scanCallback: ScanCallback, filterSelectedValue: Boolean) {
         bluetoothLeScanner
             .startScan(
-                scanFilters(),
+                scanFilters(filterSelectedValue),
                 scanSettings,
                 scanCallback
 

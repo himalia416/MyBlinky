@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">My Blinky</string>
+    <string name="back">BACK</string>
+
+    <string name="button_name">BUTTON</string>
+    <string name="led_name">LED</string>
+    <string name="led_description">Toggle the switch to turn LED on or off</string>
+    <string name="button_description">Press Button 1 on the dev kit </string>
+    <string name="button_pressed">PRESSED</string>
+    <string name="button_released">RELEASED</string>
+    <string name="led_on">ON</string>
+    <string name="led_off">OFF</string>
+
+    <string name="location_permission_info">Location permission for this application is important in order to scan for BLE devices. Please grant the permission!</string>
+
+    <string name="menu_filter">Filter</string>
+    <string name="filter_menu_lbs">Only devices advertising LBS UUID</string>
+    <string name="filter_menu_all_devices">All devices</string>
 </resources>
