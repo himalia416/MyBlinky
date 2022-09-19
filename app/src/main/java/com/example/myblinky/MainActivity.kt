@@ -1,20 +1,14 @@
 package com.example.myblinky
 
-import android.bluetooth.BluetoothDevice
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.os.Bundle
-import android.os.IBinder
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
-import com.example.myblinky.adapter.BlinkyAPI
-import com.example.myblinky.adapter.BluetoothLeService
+import com.example.myblinky.adapter.rememberBoundLocalService
 import com.example.myblinky.view.ConnectDeviceView
 import com.example.myblinky.view.ScanningView
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,7 +22,6 @@ import no.nordicsemi.android.common.theme.NordicTheme
 
 @AndroidEntryPoint
 class MainActivity : NordicActivity() {
-    private val TAG = "BluetoothLeService"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,38 +64,8 @@ class MainActivity : NordicActivity() {
             }
         ))
 
-    @Composable
-    fun rememberBoundLocalService(device: BluetoothDevice): BlinkyAPI? {
-        val context: Context = LocalContext.current
-        var boundService: BlinkyAPI? by remember(context) { mutableStateOf(null) }
-        val serviceConnection: ServiceConnection = remember(context) {
-            object : ServiceConnection {
-                override fun onServiceConnected(className: ComponentName, service: IBinder) {
-                    boundService = service as BlinkyAPI
-                }
-
-                override fun onServiceDisconnected(arg0: ComponentName) {
-                    boundService = null
-                }
-            }
-        }
-        DisposableEffect(context, serviceConnection) {
-            val intent = Intent(context, BluetoothLeService::class.java)
-            intent.putExtra("ADDRESS", device.address)
-            context.startService(intent)
-            context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
-            onDispose {
-                context.unbindService(serviceConnection)
-                boundService = null
-            }
-        }
-        return boundService
-    }
-
     companion object {
         val Main = DestinationId(NavigationConst.HOME)
         val ConnectView = DestinationId(NavigationConst.CONNECT_DEVICE)
     }
-
-
 }

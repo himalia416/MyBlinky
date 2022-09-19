@@ -2,14 +2,13 @@ package com.example.myblinky.model
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.le.BluetoothLeScanner
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
-import android.bluetooth.le.ScanSettings
+import android.bluetooth.le.*
 import android.os.Build
 import android.os.ParcelUuid
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.myblinky.adapter.BluetoothLeService.Companion.UUID_SERVICE_DEVICE
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 
@@ -18,9 +17,33 @@ import javax.inject.Inject
 class BLEManager @Inject constructor(
 ) {
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-    val bluetoothLeScanner: BluetoothLeScanner by lazy {
+    private val bluetoothLeScanner: BluetoothLeScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
     }
+
+    val devices: MutableStateFlow<List<ScanResult>> = MutableStateFlow(emptyList())
+
+    private val leScanCallback: ScanCallback by lazy {
+        object : ScanCallback() {
+            @SuppressLint("MissingPermission")
+            override fun onScanResult(callbackType: Int, result: ScanResult?) {
+                super.onScanResult(callbackType, result)
+                if (!devices.value.equals(result) && result != null) {
+                    if (result.device?.name != null) {
+                        if (checkDuplicateScanResult(devices.value, result)) {
+                            devices.value += result
+                        }
+                    }
+                }
+            }
+
+            override fun onScanFailed(errorCode: Int) {
+                super.onScanFailed(errorCode)
+                Log.e("BLE Manager", "BLE Scan Failed with ErrorCode: $errorCode")
+            }
+        }
+    }
+
     private val scanSettings: ScanSettings by lazy {
         ScanSettings.Builder()
             .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
@@ -31,27 +54,35 @@ class BLEManager @Inject constructor(
             .build()
     }
 
-    private fun scanFilters(filterSelectedValue: Boolean): MutableList<ScanFilter> {
+    private fun scanFilters(filterByUuid: Boolean): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
+        devices.value = emptyList()
         val scanFilterName =
-            if (filterSelectedValue){
-            ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()}
-        else ScanFilter.Builder().setDeviceName(null).build()
+            if (filterByUuid){
+                ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()
+            } else {
+                ScanFilter.Builder().setDeviceName(null).build()
+            }
         list.add(scanFilterName)
         return list
     }
 
-    @SuppressLint("MissingPermission")
-    fun startScanning(scanCallback: ScanCallback, filterSelectedValue: Boolean) {
+    private fun checkDuplicateScanResult(value: List<ScanResult>, result: ScanResult): Boolean {
+        return !value.any { it.device == result.device }
+    }
+
+    fun startScanning(filterByUuid: Boolean) {
         bluetoothLeScanner
             .startScan(
-                scanFilters(filterSelectedValue),
+                scanFilters(filterByUuid),
                 scanSettings,
-                scanCallback
-
+                leScanCallback
             )
     }
 
+    fun stopScan() {
+        bluetoothLeScanner.stopScan(leScanCallback)
+    }
 }
 
 

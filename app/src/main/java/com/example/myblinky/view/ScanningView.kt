@@ -29,7 +29,7 @@ import no.nordicsemi.android.common.theme.view.NordicAppBar
 @Composable
 fun ScanningView(navController: NavigationManager) {
     val viewModel = hiltViewModel<ScanningViewModel>()
-    val filterSelectedValue = remember {
+    val filterByUuid = remember {
         mutableStateOf(true)
     }
 
@@ -37,22 +37,18 @@ fun ScanningView(navController: NavigationManager) {
         NordicAppBar(
             text = stringResource(id = R.string.app_name),
             actions = {
-                addTopBarFilterOption(filterSelectedValue)
+                FilterDropDownMenu(
+                    filterByUuid = filterByUuid,
+                    viewModel = viewModel
+                )
             }
         )
 
-        Column(modifier = Modifier.padding(16.dp)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                RequireBluetooth {
-                    ScannedDevices(navController)
-                    LaunchedEffect(navController) {
-                        viewModel.startScanning(filterSelectedValue.value)
-                    }
+        Column {
+            RequireBluetooth {
+                ScannedDevices(navController)
+                LaunchedEffect(navController) {
+                    viewModel.startScanning(filterByUuid.value)
                 }
             }
         }
@@ -60,13 +56,21 @@ fun ScanningView(navController: NavigationManager) {
 }
 
 @Composable
-private fun addTopBarFilterOption(filterSelectedValue: MutableState<Boolean>) {
+private fun FilterDropDownMenu(
+    filterByUuid: MutableState<Boolean>,
+    viewModel: ScanningViewModel
+) {
     var expanded by remember { mutableStateOf(false) }
     val filterOptions = listOf(
         stringResource(id = R.string.filter_menu_lbs),
-        stringResource(id = R.string.filter_menu_all_devices)
+        stringResource(id = R.string.filter_menu_all_devices),
     )
-    var mSelectedText by remember { mutableStateOf("") }
+    var (selectedOption: String, onOptionSelected: (String) -> Unit) = remember {
+        mutableStateOf(
+            filterOptions[0]
+        )
+    }
+
     Box {
         IconButton(
             onClick = { expanded = !expanded }
@@ -78,24 +82,42 @@ private fun addTopBarFilterOption(filterSelectedValue: MutableState<Boolean>) {
         }
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }) {
+            onDismissRequest = { expanded = false }
+        ) {
             filterOptions.forEach { label ->
-                DropdownMenuItem(onClick = {
-                    mSelectedText = label
-                    expanded = false
-                }, text = { Text(text = label) })
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                ) {
+                    Text(text = label)
+                    Checkbox(
+                        checked = selectedOption == label,
+                        onCheckedChange =
+                        {
+                            selectedOption = label
+                            onOptionSelected(label)
+                            filterByUuid.value = selectedOption == filterOptions[0]
+                            viewModel.startScanning(filterByUuid.value)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
-    filterSelectedValue.value = mSelectedText == stringResource(id = R.string.filter_menu_lbs)
 }
 
 @Composable
 fun ScannedDevices(navController: NavigationManager) {
     val viewModel = hiltViewModel<ScanningViewModel>()
-    val devices: State<List<ScanResult>> = viewModel.mLeDevices.collectAsState()
+    val devices: State<List<ScanResult>> = viewModel.devices.collectAsState()
 
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(16.dp)
+    ) {
         items(items = devices.value) { result ->
             ShowScannedDevices(navController, result = result)
         }
