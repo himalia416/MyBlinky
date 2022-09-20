@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.myblinky.ConnectViewParams
 import com.example.myblinky.MainActivity.Companion.ConnectView
 import com.example.myblinky.R
+import com.example.myblinky.viewmodel.FilterDropDownViewModel
 import com.example.myblinky.viewmodel.ScanningViewModel
 import no.nordicsemi.android.common.navigation.NavigationManager
 import no.nordicsemi.android.common.permission.RequireBluetooth
@@ -29,26 +30,23 @@ import no.nordicsemi.android.common.theme.view.NordicAppBar
 @Composable
 fun ScanningView(navController: NavigationManager) {
     val viewModel = hiltViewModel<ScanningViewModel>()
-    val filterByUuid = remember {
-        mutableStateOf(true)
-    }
+    val filterViewModel = hiltViewModel<FilterDropDownViewModel>()
+    val filterByUuid = filterViewModel.isFilterByUuid.collectAsState(false).value
 
     Column {
         NordicAppBar(
             text = stringResource(id = R.string.app_name),
             actions = {
                 FilterDropDownMenu(
-                    filterByUuid = filterByUuid,
-                    viewModel = viewModel
                 )
+                viewModel.startScanning(filterByUuid)
             }
         )
-
         Column {
             RequireBluetooth {
                 ScannedDevices(navController)
                 LaunchedEffect(navController) {
-                    viewModel.startScanning(filterByUuid.value)
+                    viewModel.startScanning(filterByUuid)
                 }
             }
         }
@@ -56,20 +54,9 @@ fun ScanningView(navController: NavigationManager) {
 }
 
 @Composable
-private fun FilterDropDownMenu(
-    filterByUuid: MutableState<Boolean>,
-    viewModel: ScanningViewModel
-) {
+private fun FilterDropDownMenu() {
+    val filterViewModel = hiltViewModel<FilterDropDownViewModel>()
     var expanded by remember { mutableStateOf(false) }
-    val filterOptions = listOf(
-        stringResource(id = R.string.filter_menu_lbs),
-        stringResource(id = R.string.filter_menu_all_devices),
-    )
-    var (selectedOption: String, onOptionSelected: (String) -> Unit) = remember {
-        mutableStateOf(
-            filterOptions[0]
-        )
-    }
 
     Box {
         IconButton(
@@ -84,23 +71,22 @@ private fun FilterDropDownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            filterOptions.forEach { label ->
+            filterViewModel.filterOptions.forEachIndexed {
+                    index, label ->
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth(),
                 ) {
-                    Text(text = label)
+                    Text(text = label.filterName)
                     Checkbox(
-                        checked = selectedOption == label,
+                        checked = label.isSelected,
                         onCheckedChange =
                         {
-                            selectedOption = label
-                            onOptionSelected(label)
-                            filterByUuid.value = selectedOption == filterOptions[0]
-                            viewModel.startScanning(filterByUuid.value)
                             expanded = false
+                            label.isSelected = it
+                            filterViewModel.setFilterSelectedAtIndex(index, it)
                         }
                     )
                 }
