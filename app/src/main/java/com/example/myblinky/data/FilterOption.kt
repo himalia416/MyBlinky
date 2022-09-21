@@ -1,4 +1,4 @@
-package com.example.myblinky.view
+package com.example.myblinky.data
 
 data class FilterOption(
     val filterName: String,

@@ -3,7 +3,7 @@ package com.example.myblinky.viewmodel
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.example.myblinky.view.FilterOption
+import com.example.myblinky.data.FilterOption
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

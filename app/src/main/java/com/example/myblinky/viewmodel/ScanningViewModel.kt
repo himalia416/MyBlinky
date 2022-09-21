@@ -3,11 +3,14 @@ package com.example.myblinky.viewmodel
 import android.annotation.SuppressLint
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myblinky.model.BLEManager
+import dagger.Provides
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -16,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
  class ScanningViewModel @Inject constructor(
-    private val bleManager: BLEManager
+    private val bleManager: BLEManager,
+    @ApplicationContext context: Context
 ) : ViewModel() {
     private val SCAN_PERIOD: Long = 10000
     private var scanning = false

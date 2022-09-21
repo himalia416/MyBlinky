@@ -1,10 +1,7 @@
 package com.example.myblinky.view
 
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.le.ScanResult
-import android.location.Address
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.myblinky.ConnectViewParams
 import com.example.myblinky.MainActivity.Companion.ConnectView
 import com.example.myblinky.R
+import com.example.myblinky.data.FilterOption
 import com.example.myblinky.viewmodel.FilterDropDownViewModel
 import com.example.myblinky.viewmodel.ScanningViewModel
 import no.nordicsemi.android.common.navigation.NavigationManager

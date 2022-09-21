@@ -2,21 +2,22 @@ package com.example.myblinky.model
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
 import android.bluetooth.le.*
-import android.os.Build
+import android.content.Context
 import android.os.ParcelUuid
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.example.myblinky.adapter.BluetoothLeService.Companion.UUID_SERVICE_DEVICE
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 
-@SuppressLint("NewApi")
-@RequiresApi(Build.VERSION_CODES.M)
 class BLEManager @Inject constructor(
+    @ApplicationContext context: Context
 ) {
-    private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private val bluetoothManager: BluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+    private val bluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter
     private val bluetoothLeScanner: BluetoothLeScanner by lazy {
         bluetoothAdapter.bluetoothLeScanner
     }
@@ -67,8 +68,8 @@ class BLEManager @Inject constructor(
     fun startScanning(filterByUuid: Boolean) {
         bluetoothLeScanner
             .startScan(
-                scanFilters(filterByUuid)
-                ,scanSettings,
+                scanFilters(filterByUuid),
+                scanSettings,
                 leScanCallback
             )
     }

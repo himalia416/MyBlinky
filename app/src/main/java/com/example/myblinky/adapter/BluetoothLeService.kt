@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.*
 
 
-
 class BluetoothLeService : Service() {
     private val _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private var binder: LocalBinder? = LocalBinder()
