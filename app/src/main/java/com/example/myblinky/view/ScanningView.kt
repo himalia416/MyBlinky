@@ -1,7 +1,10 @@
 package com.example.myblinky.view
 
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanResult
+import android.location.Address
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,22 +34,26 @@ import no.nordicsemi.android.common.theme.view.NordicAppBar
 fun ScanningView(navController: NavigationManager) {
     val viewModel = hiltViewModel<ScanningViewModel>()
     val filterViewModel = hiltViewModel<FilterDropDownViewModel>()
-    val filterByUuid = filterViewModel.isFilterByUuid.collectAsState(false).value
+    val filter by remember { filterViewModel.filterOptions }
 
     Column {
         NordicAppBar(
             text = stringResource(id = R.string.app_name),
             actions = {
                 FilterDropDownMenu(
+                    filterOptions = listOf(filter),
+                    onFilterChanged = {  isSelected ->
+                        filterViewModel.setFilterSelected(isSelected)
+                    }
                 )
-                viewModel.startScanning(filterByUuid)
             }
         )
         Column {
             RequireBluetooth {
                 ScannedDevices(navController)
-                LaunchedEffect(navController) {
-                    viewModel.startScanning(filterByUuid)
+                DisposableEffect(filter) {
+                    viewModel.startScanning(filter.isSelected)
+                    onDispose { viewModel.stopBleScan() }
                 }
             }
         }
@@ -54,8 +61,10 @@ fun ScanningView(navController: NavigationManager) {
 }
 
 @Composable
-private fun FilterDropDownMenu() {
-    val filterViewModel = hiltViewModel<FilterDropDownViewModel>()
+private fun FilterDropDownMenu(
+    filterOptions: List<FilterOption>,
+    onFilterChanged: ( Boolean) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
@@ -71,22 +80,24 @@ private fun FilterDropDownMenu() {
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            filterViewModel.filterOptions.forEachIndexed {
-                    index, label ->
+            filterOptions.forEach { filterOption ->
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .clickable {
+                            expanded = false
+                            onFilterChanged(!filterOption.isSelected)
+                        }
+                        .padding(horizontal = 8.dp),
                 ) {
-                    Text(text = label.filterName)
+                    Text(text = filterOption.filterName)
                     Checkbox(
-                        checked = label.isSelected,
+                        checked = filterOption.isSelected,
                         onCheckedChange =
                         {
                             expanded = false
-                            label.isSelected = it
-                            filterViewModel.setFilterSelectedAtIndex(index, it)
+                            onFilterChanged(it)
                         }
                     )
                 }
@@ -98,14 +109,24 @@ private fun FilterDropDownMenu() {
 @Composable
 fun ScannedDevices(navController: NavigationManager) {
     val viewModel = hiltViewModel<ScanningViewModel>()
-    val devices: State<List<ScanResult>> = viewModel.devices.collectAsState()
+    val devices by viewModel.devices.collectAsState()
 
+    val action: (BluetoothDevice) -> Unit = {
+        navController.navigateTo(
+            destination = ConnectView,
+            ConnectViewParams(it)
+        )
+    }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(16.dp)
     ) {
-        items(items = devices.value) { result ->
-            ShowScannedDevices(navController, result = result)
+        items(items = devices) { result ->
+            ShowScannedDevices(
+                name = result.scanRecord?.deviceName,
+                address = result.device.address,
+                onDeviceSelected = { action(result.device) },
+            )
         }
     }
 }
@@ -113,27 +134,21 @@ fun ScannedDevices(navController: NavigationManager) {
 
 @Composable
 fun ShowScannedDevices(
-    navigationManager: NavigationManager,
-    result: ScanResult,
+    name: String?,
+    address: String,
+    onDeviceSelected: () -> Unit,
 ) {
-    val viewModel = hiltViewModel<ScanningViewModel>()
     Column(
         modifier = Modifier
-            .clickable {
-                viewModel.stopBleScan()
-                navigationManager.navigateTo(
-                    destination = ConnectView,
-                    ConnectViewParams(result.device)
-                )
-            }
             .padding(8.dp)
+            .clickable { onDeviceSelected() }
     ) {
         Text(
-            text = result.device!!.name ?: "No name",
+            text = name ?: "No name",
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = result.device!!.address,
+            text = address,
         )
         Divider()
     }

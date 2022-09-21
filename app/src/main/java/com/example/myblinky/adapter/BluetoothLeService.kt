@@ -24,7 +24,6 @@ class BluetoothLeService : Service() {
 
     private var buttonState = MutableStateFlow(false)
     private var ledCharacteristic: BluetoothGattCharacteristic? = null
-    private var buttonCharacteristic: BluetoothGattCharacteristic? = null
 
     private val STATE_RELEASED = byteArrayOf(0x00)
     private val STATE_PRESSED = byteArrayOf(0x01)
@@ -57,6 +56,7 @@ class BluetoothLeService : Service() {
         }
 
         override fun turnLed(on: Boolean) {
+            Log.w("AAA", "turnLed")
             writeCharacteristic(
                 ledCharacteristic,
                 turn(on),
@@ -143,8 +143,7 @@ class BluetoothLeService : Service() {
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED)
-                val gattServices: List<BluetoothGattService> =
-                    gatt?.services as List<BluetoothGattService>
+                val gattServices = gatt?.services ?: emptyList()
                 for (gattService in gattServices) {
                     readCharacteristic()
                     ledCharacteristic = gattService.getCharacteristic(UUID_LED_CHAR)
@@ -161,7 +160,6 @@ class BluetoothLeService : Service() {
         ) {
             Log.i(TAG, "characteristics changed")
             buttonDataCallback(value)
-
         }
 
         override fun onCharacteristicRead(
@@ -224,15 +222,16 @@ class BluetoothLeService : Service() {
     }
 
     fun readCharacteristic() {
-        if (bluetoothGatt == null) {
+        bluetoothGatt?.let { gatt ->
+            gatt.getService(UUID_SERVICE_DEVICE)
+                ?.getCharacteristic(UUID_BUTTON_CHAR)
+                ?.let { gatt.readCharacteristic(it) }
+                .also {
+                    Log.i("OnServicesDiscovered", "-----------------------------")
+                }
+        } ?: run {
             Log.w(TAG, "BluetoothAdapter not initialized")
-            return
         }
-        buttonCharacteristic =
-            bluetoothGatt!!.getService(UUID_SERVICE_DEVICE)?.getCharacteristic(UUID_BUTTON_CHAR)
-        bluetoothGatt!!.readCharacteristic(buttonCharacteristic)
-        setCharacteristicNotification(characteristic = buttonCharacteristic, true)
-        Log.i("OnServicesDiscovered", "-----------------------------")
     }
 
     fun writeCharacteristic(

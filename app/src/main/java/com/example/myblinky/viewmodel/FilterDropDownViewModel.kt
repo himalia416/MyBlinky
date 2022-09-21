@@ -1,29 +1,23 @@
 package com.example.myblinky.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.example.myblinky.callback.FilterOption
+import com.example.myblinky.view.FilterOption
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class FilterDropDownViewModel @Inject constructor() : ViewModel() {
-    private val _filterOptions = mutableStateListOf(
+    private val _filterOptions = mutableStateOf(
         FilterOption(
             filterName = "Only devices advertising LBS UUID",
             isSelected = false
         ),
-        FilterOption(
-            filterName = "All devices",
-            isSelected = false
-        )
     )
-    val filterOptions = _filterOptions
-    var isFilterByUuid = MutableStateFlow(false)
-    fun setFilterSelectedAtIndex(index: Int, isSelected: Boolean) {
-        _filterOptions[index] = _filterOptions[index].copy(isSelected = isSelected)
-        isFilterByUuid.value =
-            _filterOptions[0].isSelected == true && _filterOptions[1].isSelected == false
+    val filterOptions: State<FilterOption> = _filterOptions
+
+    fun setFilterSelected(isSelected: Boolean) {
+        _filterOptions.value = _filterOptions.value.copy(isSelected = isSelected)
     }
 }

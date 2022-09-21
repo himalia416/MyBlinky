@@ -1,6 +1,9 @@
 package com.example.myblinky.viewmodel
 
 import android.annotation.SuppressLint
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myblinky.model.BLEManager
@@ -21,14 +24,14 @@ import javax.inject.Inject
 
     val devices = bleManager.devices
 
-    @SuppressLint("StaticFieldLeak")
+
     fun startScanning(filterByUuid: Boolean) {
-        println("filter value in hiltviewmodel: $filterByUuid")
         if (!scanning) {
             // Stops scanning after a pre-defined scan period.
             viewModelScope
-                .launch (Dispatchers.Main) {
+                .launch (Dispatchers.Default) {
                     delay(SCAN_PERIOD)
+                    println("filter scan stopped 11")
                     stopBleScan()
                 }
                 .also { viewModelJob = it }
@@ -42,6 +45,7 @@ import javax.inject.Inject
 
     fun stopBleScan() {
         scanning = false
+        println("filter scan stopped 12")
         bleManager.stopScan()
     }
 

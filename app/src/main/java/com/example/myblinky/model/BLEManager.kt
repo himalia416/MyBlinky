@@ -22,23 +22,16 @@ class BLEManager @Inject constructor(
     }
 
     val devices: MutableStateFlow<List<ScanResult>> = MutableStateFlow(emptyList())
-
     private val leScanCallback: ScanCallback by lazy {
         object : ScanCallback() {
             @SuppressLint("MissingPermission")
             override fun onScanResult(callbackType: Int, result: ScanResult?) {
-                super.onScanResult(callbackType, result)
-                if (!devices.value.equals(result) && result != null) {
-                    if (result.device?.name != null) {
-                        if (checkDuplicateScanResult(devices.value, result)) {
-                            devices.value += result
-                        }
-                    }
-                }
+                result
+                    ?.takeIf { checkDuplicateScanResult(devices.value, it) }
+                    ?.also { devices.value += it }
             }
 
             override fun onScanFailed(errorCode: Int) {
-                super.onScanFailed(errorCode)
                 Log.e("BLE Manager", "BLE Scan Failed with ErrorCode: $errorCode")
             }
         }
@@ -46,9 +39,9 @@ class BLEManager @Inject constructor(
 
     private val scanSettings: ScanSettings by lazy {
         ScanSettings.Builder()
-            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+//            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
             .setLegacy(false)
-            .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
+//            .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
             .setReportDelay(0)
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
@@ -56,9 +49,9 @@ class BLEManager @Inject constructor(
 
     private fun scanFilters(filterByUuid: Boolean): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
-        devices.value = emptyList()
         val scanFilterName =
             if (filterByUuid){
+                devices.value = emptyList()
                 ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()
             } else {
                 ScanFilter.Builder().setDeviceName(null).build()
@@ -74,8 +67,8 @@ class BLEManager @Inject constructor(
     fun startScanning(filterByUuid: Boolean) {
         bluetoothLeScanner
             .startScan(
-                scanFilters(filterByUuid),
-                scanSettings,
+                scanFilters(filterByUuid)
+                ,scanSettings,
                 leScanCallback
             )
     }
