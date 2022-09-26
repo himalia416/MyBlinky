@@ -7,13 +7,13 @@ import android.bluetooth.le.*
 import android.content.Context
 import android.os.ParcelUuid
 import android.util.Log
-import com.example.myblinky.adapter.BluetoothLeService.Companion.UUID_SERVICE_DEVICE
+import com.example.myblinky.spec.BlinkySpecifications.Companion.UUID_SERVICE_DEVICE
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 
-class BLEManager @Inject constructor(
+class ScanningManager @Inject constructor(
     @ApplicationContext context: Context
 ) {
     private val bluetoothManager: BluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -40,9 +40,8 @@ class BLEManager @Inject constructor(
 
     private val scanSettings: ScanSettings by lazy {
         ScanSettings.Builder()
-//            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
             .setLegacy(false)
-//            .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
             .setReportDelay(0)
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
@@ -50,9 +49,10 @@ class BLEManager @Inject constructor(
 
     private fun scanFilters(filterByUuid: Boolean): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
+
         val scanFilterName =
             if (filterByUuid){
-                devices.value = emptyList()
+
                 ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()
             } else {
                 ScanFilter.Builder().setDeviceName(null).build()
@@ -66,8 +66,10 @@ class BLEManager @Inject constructor(
     }
 
     fun startScanning(filterByUuid: Boolean) {
+        devices.value = emptyList()
         bluetoothLeScanner
             .startScan(
+
                 scanFilters(filterByUuid),
                 scanSettings,
                 leScanCallback

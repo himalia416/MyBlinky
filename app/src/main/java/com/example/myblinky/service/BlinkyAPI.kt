@@ -1,4 +1,4 @@
-package com.example.myblinky.adapter
+package com.example.myblinky.service
 
 import kotlinx.coroutines.flow.Flow
 

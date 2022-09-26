@@ -8,9 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
-import com.example.myblinky.adapter.rememberBoundLocalService
-import com.example.myblinky.view.ConnectDeviceView
-import com.example.myblinky.view.ScanningView
+import com.example.myblinky.service.rememberBoundLocalService
+import com.example.myblinky.screen.ControlDeviceScreen
+import com.example.myblinky.screen.ScanningScreen
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.navigation.ComposeDestination
 import no.nordicsemi.android.common.navigation.ComposeDestinations
@@ -39,7 +39,7 @@ class MainActivity : NordicActivity() {
     private val destinations =
         ComposeDestinations(listOf(
             ComposeDestination(Main) { navigationManager ->
-                ScanningView(navigationManager)
+                ScanningScreen(navigationManager)
             },
             ComposeDestination(ConnectView) { navigationManager ->
                 val deviceSelected = remember {
@@ -53,7 +53,7 @@ class MainActivity : NordicActivity() {
                         }
                         val buttonState by flow.collectAsState(false)
 
-                        ConnectDeviceView(
+                        ControlDeviceScreen(
                             navigationManager = navigationManager,
                             device = device,
                             onLedChange = { blinky.turnLed(it) },
@@ -66,6 +66,6 @@ class MainActivity : NordicActivity() {
 
     companion object {
         val Main = DestinationId(NavigationConst.HOME)
-        val ConnectView = DestinationId(NavigationConst.CONNECT_DEVICE)
+        val ConnectView = DestinationId(NavigationConst.CONTROL_BLINKY)
     }
 }

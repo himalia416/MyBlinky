@@ -1,4 +1,4 @@
-package com.example.myblinky.adapter
+package com.example.myblinky.service
 
 import android.bluetooth.BluetoothDevice
 import android.content.ComponentName
@@ -30,9 +30,8 @@ fun rememberBoundLocalService(device: BluetoothDevice): BlinkyAPI? {
         context.startService(intent)
         context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
         onDispose {
-            context.unbindService(serviceConnection)
-            context.stopService(intent)
             boundService = null
+            context.unbindService(serviceConnection)
         }
     }
     return boundService
