@@ -1,14 +1,17 @@
 package com.example.myblinky.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,8 +21,6 @@ import com.example.myblinky.R
 
 @Composable
 fun ButtonView(
-    buttonName: String,
-    buttonDescription: String,
     buttonsState: Boolean,
     modifier: Modifier,
 ) {
@@ -34,18 +35,19 @@ fun ButtonView(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = modifier,
             ) {
-                Icon(
+                Image(
                     imageVector = Icons.Default.RadioButtonChecked,
                     contentDescription = null,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(end = 16.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                 )
                 Text(
-                    text = buttonName,
-                    fontWeight = FontWeight.Bold
+                    text = stringResource(id = R.string.button_name),
+                    style = MaterialTheme.typography.headlineMedium,
                 )
             }
             Text(
-                text = buttonDescription,
+                text = stringResource(id = R.string.button_description),
                 modifier = Modifier.padding(top = 4.dp),
                 textAlign = TextAlign.Center
             )

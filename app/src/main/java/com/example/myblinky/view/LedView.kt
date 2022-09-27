@@ -1,18 +1,17 @@
 package com.example.myblinky.view
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,8 +19,6 @@ import com.example.myblinky.R
 
 @Composable
 fun LedView(
-    ledName: String,
-    ledDescription: String,
     onLedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -38,18 +35,19 @@ fun LedView(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = modifier,
             ) {
-                Icon(
+                Image(
                     imageVector= Icons.Default.Lightbulb,
                     contentDescription = null,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(end = 16.dp),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                 )
                 Text(
-                    text = ledName,
-                    fontWeight = FontWeight.Bold
+                    text = stringResource(id = R.string.led_name),
+                    style = MaterialTheme.typography.headlineMedium,
                 )
             }
             Text(
-                text = ledDescription,
+                text = stringResource(id = R.string.led_description),
                 modifier = Modifier.padding(top = 4.dp),
             )
             ToggleLedSwitch(

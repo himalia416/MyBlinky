@@ -28,8 +28,6 @@ class BluetoothLeService : Service() {
     private var buttonState = MutableStateFlow(false)
     private var ledCharacteristic: BluetoothGattCharacteristic? = null
 
-    private val STATE_RELEASED = byteArrayOf(0x00)
-    private val STATE_PRESSED = byteArrayOf(0x01)
     private val STATE_OFF = byteArrayOf(0x00)
     private val STATE_ON = byteArrayOf(0x01)
 
@@ -96,9 +94,9 @@ class BluetoothLeService : Service() {
     }
 
     fun buttonDataCallback(status: ByteArray?) {
-        if (status.contentEquals(STATE_PRESSED)) {
+        if (status.contentEquals(STATE_ON)) {
             buttonState.value = true
-        } else if (status.contentEquals(STATE_RELEASED)) {
+        } else if (status.contentEquals(STATE_OFF)) {
             buttonState.value = false
         } else Log.e(
             "button data callback error:",
@@ -257,7 +255,7 @@ class BluetoothLeService : Service() {
         bluetoothGatt!!.setCharacteristicNotification(characteristic, enabled)
         if (UUID_BUTTON_CHAR == characteristic?.uuid) {
             val descriptor =
-                characteristic?.getDescriptor(UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR)
+                characteristic.getDescriptor(UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR)
             descriptor?.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
             bluetoothGatt?.writeDescriptor(descriptor!!)
         }

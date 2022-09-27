@@ -10,8 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +33,7 @@ import no.nordicsemi.android.common.theme.view.NordicAppBar
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun ScanningScreen(navController: NavigationManager) {
+    val height by remember { mutableStateOf(0.dp) }
     val viewModel = hiltViewModel<ScanningViewModel>()
     val filterViewModel = hiltViewModel<FilterDropDownViewModel>()
     val filter by remember { filterViewModel.filterOptions }
@@ -40,19 +43,24 @@ fun ScanningScreen(navController: NavigationManager) {
         NordicAppBar(
             text = stringResource(id = R.string.app_name)
         ) {
-            Row {
-                if (isScanning) {
-                    CircularProgressIndicator()
+            FilterDropDownView(
+                filterOptions = listOf(filter),
+                onFilterChanged = { isSelected ->
+                    filterViewModel.setFilterSelected(isSelected)
                 }
-                FilterDropDownView(
-                    filterOptions = listOf(filter),
-                    onFilterChanged = { isSelected ->
-                        filterViewModel.setFilterSelected(isSelected)
-                    }
-                )
-            }
+            )
         }
+
+        if (isScanning) {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(height)
+            )
+        }
+
         Column {
+
             RequireBluetooth {
                 ScannedDevices(navController)
                 DisposableEffect(filter) {
