@@ -1,12 +1,12 @@
-package com.example.myblinky.screen
+package com.example.myblinky.scanner.screen
 
 import android.bluetooth.BluetoothDevice
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.myblinky.view.ButtonView
-import com.example.myblinky.view.LedView
+import com.example.myblinky.scanner.view.ButtonView
+import com.example.myblinky.scanner.view.LedView
 import no.nordicsemi.android.common.navigation.NavigationManager
 import no.nordicsemi.android.common.theme.view.NordicAppBar
 

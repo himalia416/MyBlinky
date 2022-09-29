@@ -1,4 +1,4 @@
-package com.example.myblinky.view
+package com.example.myblinky.scanner.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myblinky.R
-import com.example.myblinky.data.FilterOption
+import com.example.myblinky.scanner.data.FilterOption
 
 
 @Composable

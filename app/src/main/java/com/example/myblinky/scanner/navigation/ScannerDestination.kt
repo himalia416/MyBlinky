@@ -1,7 +1,7 @@
-package com.example.myblinky.navigation
+package com.example.myblinky.scanner.navigation
 
 import com.example.myblinky.MainActivity
-import com.example.myblinky.screen.ScanningScreen
+import com.example.myblinky.scanner.screen.ScanningScreen
 import no.nordicsemi.android.common.navigation.ComposeDestination
 import no.nordicsemi.android.common.navigation.ComposeDestinations
 

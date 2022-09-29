@@ -2,8 +2,8 @@ package com.example.myblinky
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Surface
-import com.example.myblinky.navigation.BlinkyControlDestination
-import com.example.myblinky.navigation.ScanningDestinations
+import com.example.myblinky.blinky.navigation.BlinkyControlDestination
+import com.example.myblinky.scanner.navigation.ScanningDestinations
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.NavigationView

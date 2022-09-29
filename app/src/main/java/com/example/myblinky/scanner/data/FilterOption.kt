@@ -1,4 +1,4 @@
-package com.example.myblinky.data
+package com.example.myblinky.scanner.data
 
 data class FilterOption(
     val filterName: String,

@@ -8,10 +8,10 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import com.example.myblinky.spec.BlinkySpecifications.Companion.UUID_BUTTON_CHAR
-import com.example.myblinky.spec.BlinkySpecifications.Companion.UUID_LED_CHAR
-import com.example.myblinky.spec.BlinkySpecifications.Companion.UUID_SERVICE_DEVICE
-import com.example.myblinky.spec.BlinkySpecifications.Companion.UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR
+import com.example.myblinky.blinky.spec.BlinkySpecifications.Companion.UUID_BUTTON_CHAR
+import com.example.myblinky.blinky.spec.BlinkySpecifications.Companion.UUID_LED_CHAR
+import com.example.myblinky.blinky.spec.BlinkySpecifications.Companion.UUID_SERVICE_DEVICE
+import com.example.myblinky.blinky.spec.BlinkySpecifications.Companion.UUID_UPDATE_NOTIFICATION_DESCRIPTOR_CHAR
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -204,7 +204,6 @@ class BluetoothLeService : Service() {
         close()
         return super.onUnbind(intent)
     }
-
     private fun close() {
         bluetoothGatt?.let { gatt ->
             gatt.close()

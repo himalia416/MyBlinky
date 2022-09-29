@@ -1,4 +1,4 @@
-package com.example.myblinky.viewmodel
+package com.example.myblinky.scanner.viewmodel
 
 import android.app.Application
 import android.content.Context

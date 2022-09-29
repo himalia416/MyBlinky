@@ -1,8 +1,8 @@
-package com.example.myblinky.viewmodel
+package com.example.myblinky.scanner.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myblinky.model.ScanningManager
+import com.example.myblinky.scanner.model.ScanningManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

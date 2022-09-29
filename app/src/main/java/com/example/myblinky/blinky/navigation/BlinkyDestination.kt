@@ -1,11 +1,10 @@
-package com.example.myblinky.navigation
+package com.example.myblinky.blinky.navigation
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import com.example.myblinky.ConnectViewParams
 import com.example.myblinky.MainActivity
-import com.example.myblinky.screen.ControlDeviceScreen
+import com.example.myblinky.scanner.screen.ControlDeviceScreen
 import com.example.myblinky.service.rememberBoundLocalService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,11 +13,11 @@ import kotlinx.coroutines.flow.stateIn
 import no.nordicsemi.android.common.navigation.ComposeDestination
 import no.nordicsemi.android.common.navigation.ComposeDestinations
 
-private val scope: CoroutineScope = CoroutineScope( Dispatchers.IO )
+private val scope = CoroutineScope( Dispatchers.IO )
 
 private val BlinkyControl =   ComposeDestination(MainActivity.ConnectView) { navigationManager ->
     val deviceSelected = remember {
-        (navigationManager.getArgument(MainActivity.ConnectView) as? ConnectViewParams)?.device
+        (navigationManager.getArgument(MainActivity.ConnectView) as? BlinkyDestinationParams)?.device
     }
     deviceSelected?.let { device ->
         val blinky = rememberBoundLocalService(device)

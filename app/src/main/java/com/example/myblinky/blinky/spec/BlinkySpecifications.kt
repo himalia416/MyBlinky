@@ -1,4 +1,4 @@
-package com.example.myblinky.spec
+package com.example.myblinky.blinky.spec
 
 import java.util.*
 

@@ -1,4 +1,4 @@
-package com.example.myblinky.screen
+package com.example.myblinky.scanner.screen
 
 import android.bluetooth.BluetoothDevice
 import android.os.Build
@@ -16,12 +16,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.myblinky.ConnectViewParams
+import com.example.myblinky.blinky.navigation.BlinkyDestinationParams
 import com.example.myblinky.MainActivity.Companion.ConnectView
 import com.example.myblinky.R
-import com.example.myblinky.view.FilterDropDownView
-import com.example.myblinky.viewmodel.FilterDropDownViewModel
-import com.example.myblinky.viewmodel.ScanningViewModel
+import com.example.myblinky.scanner.view.FilterDropDownView
+import com.example.myblinky.scanner.viewmodel.FilterDropDownViewModel
+import com.example.myblinky.scanner.viewmodel.ScanningViewModel
 import no.nordicsemi.android.common.navigation.NavigationManager
 import no.nordicsemi.android.common.permission.RequireBluetooth
 import no.nordicsemi.android.common.theme.view.NordicAppBar
@@ -74,7 +74,7 @@ fun ScannedDevices(navController: NavigationManager) {
     val action: (BluetoothDevice) -> Unit = {
         navController.navigateTo(
             destination = ConnectView,
-            ConnectViewParams(it)
+            BlinkyDestinationParams(it)
         )
     }
     LazyColumn(
