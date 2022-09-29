@@ -45,6 +45,9 @@ import javax.inject.Inject
         scanning.value = false
         scanningManager.stopScan()
     }
+    fun clearScanResult(){
+        scanningManager.clear()
+    }
 
 }
 
