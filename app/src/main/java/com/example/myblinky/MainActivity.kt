@@ -2,8 +2,8 @@ package com.example.myblinky
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.material3.Surface
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.myblinky.navigation.BleViewModel
+import com.example.myblinky.navigation.BlinkyControlDestination
+import com.example.myblinky.navigation.ScanningDestinations
 import dagger.hilt.android.AndroidEntryPoint
 import no.nordicsemi.android.common.navigation.DestinationId
 import no.nordicsemi.android.common.navigation.NavigationView
@@ -18,12 +18,10 @@ class MainActivity : NordicActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             NordicTheme {
-                val blinkyControlDestination = hiltViewModel<BleViewModel>().blinkyControlDestination
-                val scanningDestinations = hiltViewModel<BleViewModel>().scanningDestinations
                 Surface {
                     RequireBluetooth {
-                        NavigationView ( destinations = scanningDestinations
-                                + blinkyControlDestination
+                        NavigationView ( destinations = ScanningDestinations
+                                + BlinkyControlDestination
                         )
                     }
                 }
