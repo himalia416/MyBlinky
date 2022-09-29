@@ -22,6 +22,8 @@ import com.example.myblinky.R
 import com.example.myblinky.scanner.view.FilterDropDownView
 import com.example.myblinky.scanner.viewmodel.FilterDropDownViewModel
 import com.example.myblinky.scanner.viewmodel.ScanningViewModel
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import no.nordicsemi.android.common.navigation.NavigationManager
 import no.nordicsemi.android.common.permission.RequireBluetooth
 import no.nordicsemi.android.common.theme.view.NordicAppBar
@@ -54,12 +56,22 @@ fun ScanningScreen(navigationManager: NavigationManager) {
         }
 
         Column {
-
+            val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = false)
             RequireBluetooth {
-                ScannedDevices(navigationManager)
-                DisposableEffect(filter) {
-                    viewModel.startScanning(filter.isSelected)
-                    onDispose { viewModel.stopBleScan() }
+                SwipeRefresh(
+                    state = swipeRefreshState,
+                    onRefresh = {
+                        viewModel.clearScanResult()
+                        if (!isScanning) {
+                            viewModel.startScanning(filter.isSelected)
+                        }
+                    }
+                ) {
+                    ScannedDevices(navigationManager)
+                    DisposableEffect(filter) {
+                        viewModel.startScanning(filter.isSelected)
+                        onDispose { viewModel.stopBleScan() }
+                    }
                 }
             }
         }

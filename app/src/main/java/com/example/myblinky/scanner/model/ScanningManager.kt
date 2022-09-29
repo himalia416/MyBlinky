@@ -83,7 +83,7 @@ class ScanningManager @Inject constructor(
         bluetoothLeScanner.stopScan(leScanCallback)
     }
 
-    private fun clear() {
+    fun clear() {
         devices.value = emptyList()
     }
 }
