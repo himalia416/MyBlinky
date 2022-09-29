@@ -1,4 +1,4 @@
-package com.example.myblinky.model
+package com.example.myblinky.scanner.model
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -6,8 +6,7 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.*
 import android.content.Context
 import android.os.ParcelUuid
-import android.util.Log
-import com.example.myblinky.spec.BlinkySpecifications.Companion.UUID_SERVICE_DEVICE
+import com.example.myblinky.blinky.spec.BlinkySpecifications.Companion.UUID_SERVICE_DEVICE
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -32,15 +31,21 @@ class ScanningManager @Inject constructor(
                     ?.also { devices.value += it }
             }
 
+            override fun onBatchScanResults(result: List<ScanResult>) {
+                result.forEach {
+                    if (checkDuplicateScanResult(devices.value, it)) {
+                        devices.value += it
+                    }
+                }
+            }
             override fun onScanFailed(errorCode: Int) {
-                Log.e("BLE Manager", "BLE Scan Failed with ErrorCode: $errorCode")
+
             }
         }
     }
 
     private val scanSettings: ScanSettings by lazy {
         ScanSettings.Builder()
-            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
             .setLegacy(false)
             .setReportDelay(0)
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -49,10 +54,10 @@ class ScanningManager @Inject constructor(
 
     private fun scanFilters(filterByUuid: Boolean): MutableList<ScanFilter> {
         val list: MutableList<ScanFilter> = ArrayList()
-
+        clear()
         val scanFilterName =
             if (filterByUuid){
-
+                clear()
                 ScanFilter.Builder().setServiceUuid(ParcelUuid(UUID_SERVICE_DEVICE)).build()
             } else {
                 ScanFilter.Builder().setDeviceName(null).build()
@@ -66,10 +71,8 @@ class ScanningManager @Inject constructor(
     }
 
     fun startScanning(filterByUuid: Boolean) {
-        devices.value = emptyList()
         bluetoothLeScanner
             .startScan(
-
                 scanFilters(filterByUuid),
                 scanSettings,
                 leScanCallback
@@ -78,6 +81,10 @@ class ScanningManager @Inject constructor(
 
     fun stopScan() {
         bluetoothLeScanner.stopScan(leScanCallback)
+    }
+
+    private fun clear() {
+        devices.value = emptyList()
     }
 }
 
