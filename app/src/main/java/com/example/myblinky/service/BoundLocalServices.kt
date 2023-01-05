@@ -32,6 +32,7 @@ fun rememberBoundLocalService(device: BluetoothDevice): BlinkyAPI? {
         onDispose {
             boundService = null
             context.unbindService(serviceConnection)
+            boundService = null
         }
     }
     return boundService
