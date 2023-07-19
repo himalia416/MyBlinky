@@ -66,5 +66,5 @@ dependencies {
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.9.1'
 
-    implementation 'com.google.accompanist:accompanist-swiperefresh:0.26.4-beta'
+    implementation 'com.google.accompanist:accompanist-swiperefresh:0.30.1'
 }
