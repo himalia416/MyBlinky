@@ -54,7 +54,7 @@ dependencies {
 
     implementation "com.google.accompanist:accompanist-permissions:0.24.3-alpha"
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
 
     implementation 'no.nordicsemi.android.common:theme:1.0.24'
