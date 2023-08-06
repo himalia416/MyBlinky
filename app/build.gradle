@@ -60,7 +60,7 @@ dependencies {
     implementation 'no.nordicsemi.android.common:theme:1.0.24'
     implementation 'com.github.jeziellago:compose-markdown:0.3.4'
     implementation 'no.nordicsemi.android.common:permission:1.0.24'
-    implementation 'no.nordicsemi.android.common:navigation:1.0.24'
+    implementation 'no.nordicsemi.android.common:navigation:1.8.1'
 
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
 
